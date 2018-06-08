@@ -1,0 +1,11 @@
+<div *ngIf="authService.isTokenExpired()==false">
+  <app-nav-menu></app-nav-menu>
+</div>
+
+<div class='container-fluid'>
+  <div class='row'>
+    <div class='col mt-3'>
+      <router-outlet></router-outlet>
+    </div>
+  </div>
+</div>

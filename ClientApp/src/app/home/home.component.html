@@ -1,0 +1,554 @@
+<div class="p-3 m-5">
+
+  <div *ngIf="showBetGroupSelection">
+    <div class="row">
+      <div class="col-12">
+        <form class="form-inline">
+          <div class="form-group mx-sm-3 mb-2">
+            <label for="betgroup" class="mr-2">Choose Your Betting Group</label>
+            <select class="form-control" name="selectedBetGroup" [(ngModel)]="selectedBetGroup">
+              <option *ngFor="let myBetGroup of myBetGroups" [ngValue]="myBetGroup">{{myBetGroup.Name}}</option>
+            </select>
+          </div>
+          <button type="submit" class="btn btn-primary mb-2">Confirm identity</button>
+        </form>
+      </div>
+    </div>
+    <hr />
+  </div>
+
+  <div class="row text-center">
+
+    <div class="col-4">
+      <div class="card rounded text-white bg-primary mb-3" style="
+    border-radius: 200px!important;
+    box-shadow: 0px 4px 34px 7px rgba(181,83,108,1);">
+        <div class="card-header text-center">
+          <div style="font-size:3em; color:yellow">
+            <i class="fas fa-star"></i>
+          </div>
+          <p style="font-size:30px;margin:0">Score</p>
+        </div>
+        <div class="card-body">
+          <p class="card-text text-center" style="font-size:30px">5</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-4">
+      <div class="card text-white bg-success mb-3" style="
+    border-radius: 200px!important;
+    box-shadow: 0px 4px 34px 7px rgba(181,83,108,1);">
+        <div class="card-header text-center">
+          <div style="font-size:3em; color:yellow">
+            <i class="fas fa-trophy"></i>
+            <p style="font-size:30px;margin:0">Rank</p>
+          </div>
+        </div>
+        <div class="card-body text-center">
+          <p class="card-text text-center" style="font-size:30px">5</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-4">
+      <div class="card text-white bg-danger mb-3" style="border-radius: 200px!important;box-shadow:0px 4px 34px 7px rgba(181,83,108,1);">
+        <div class="card-header text-center">
+          <div style="font-size:3em; color:yellow">
+            <i class="fas fa-lightbulb"></i>
+            <p style="font-size:30px;margin:0">Predictions</p>
+          </div>
+        </div>
+        <div class="card-body text-center">
+
+          
+
+          <div class="row">
+            <div class="col-6" style="padding:0">
+              <div style="border-right: 1px solid #c8ced3">
+                <div style="font-size: 30px;font-weight: 600;">
+                  89
+                </div>
+              </div>
+            </div>
+            <div class="col-6" style="padding:0">
+              <div style="padding:0">
+                <div style="font-size:30px;font-weight: 600;">
+                  89
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <hr />
+
+
+  <ngb-accordion [closeOthers]="true" activeIds="static-1">
+    <ngb-panel id="static-2" title="Bonus Predictions">
+      <ng-template ngbPanelContent>
+
+        <h1 class="display-4">Groups</h1>
+        <hr />
+        <div class="row">
+          <div class="col-6">
+            <div class="form-group">
+              <label>1st Team of Group A</label>
+              <select class="form-control" [ngModel]="firstTeamInGroupAPrediction.TeamId" (change)="onChangeBonusPrediction(firstTeamInGroupAPrediction,$event.target.value)" name="a1">
+                <option [value]="null"></option>
+                <option *ngFor="let team of teamsOfGroupA" [selected]="team.TeamId===firstTeamInGroupAPrediction.TeamId" [value]="team.TeamId">{{team.TeamName}}</option>
+              </select>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="form-group">
+              <label>2nd Team of Group A</label>
+              <select class="form-control" (change)="onChangeBonusPrediction(secondTeamInGroupAPrediction,$event.target.value)" name="a2">
+                <option [value]="null"></option>
+                <option *ngFor="let team of teamsOfGroupA" [selected]="team.TeamId===secondTeamInGroupAPrediction.TeamId" [value]="team.TeamId">{{team.TeamName}}</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-6">
+            <div class="form-group">
+              <label>1st Team of Group B</label>
+              <select class="form-control" (change)="onChangeBonusPrediction(firstTeamInGroupBPrediction,$event.target.value)" name="b1">
+                <option [value]="null"></option>
+                <option *ngFor="let team of teamsOfGroupB" [selected]="team.TeamId===firstTeamInGroupBPrediction.TeamId" [value]="team.TeamId">{{team.TeamName}}</option>
+              </select>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="form-group">
+              <label>2nd Team of Group B</label>
+              <select class="form-control" (change)="onChangeBonusPrediction(secondTeamInGroupBPrediction,$event.target.value)" name="2">
+                <option [value]="null"></option>
+                <option *ngFor="let team of teamsOfGroupB" [selected]="team.TeamId===secondTeamInGroupBPrediction.TeamId" [value]="team.TeamId">{{team.TeamName}}</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-6">
+            <div class="form-group">
+              <label>1st Team of Group C</label>
+              <select class="form-control" (change)="onChangeBonusPrediction(firstTeamInGroupCPrediction,$event.target.value)" name="c1">
+                <option [value]="null"></option>
+                <option *ngFor="let team of teamsOfGroupC" [selected]="team.TeamId===firstTeamInGroupCPrediction.TeamId" [value]="team.TeamId">{{team.TeamName}}</option>
+              </select>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="form-group">
+              <label>2nd Team of Group C</label>
+              <select class="form-control" (change)="onChangeBonusPrediction(secondTeamInGroupCPrediction,$event.target.value)" name="c2">
+                <option [value]="null"></option>
+                <option *ngFor="let team of teamsOfGroupC" [selected]="team.TeamId===secondTeamInGroupCPrediction.TeamId" [value]="team.TeamId">{{team.TeamName}}</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-6">
+            <div class="form-group">
+              <label>1st Team of Group D</label>
+              <select class="form-control" (change)="onChangeBonusPrediction(firstTeamInGroupDPrediction,$event.target.value)" name="d1">
+                <option [value]="null"></option>
+                <option *ngFor="let team of teamsOfGroupD" [selected]="team.TeamId===firstTeamInGroupDPrediction.TeamId" [value]="team.TeamId">{{team.TeamName}}</option>
+              </select>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="form-group">
+              <label>2nd Team of Group D</label>
+              <select class="form-control" (change)="onChangeBonusPrediction(secondTeamInGroupDPrediction,$event.target.value)" name="d2">
+                <option [value]="null"></option>
+                <option *ngFor="let team of teamsOfGroupD" [selected]="team.TeamId===secondTeamInGroupDPrediction.TeamId" [value]="team.TeamId">{{team.TeamName}}</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-6">
+            <div class="form-group">
+              <label>1st Team of Group E</label>
+              <select class="form-control" (change)="onChangeBonusPrediction(firstTeamInGroupEPrediction,$event.target.value)" name="e1">
+                <option [value]="null"></option>
+                <option *ngFor="let team of teamsOfGroupE" [selected]="team.TeamId===firstTeamInGroupEPrediction.TeamId" [value]="team.TeamId">{{team.TeamName}}</option>
+              </select>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="form-group">
+              <label>2nd Team of Group E</label>
+              <select class="form-control" (change)="onChangeBonusPrediction(secondTeamInGroupEPrediction,$event.target.value)" name="e2">
+                <option [value]="null"></option>
+                <option *ngFor="let team of teamsOfGroupE" [selected]="team.TeamId===secondTeamInGroupEPrediction.TeamId" [value]="team.TeamId">{{team.TeamName}}</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-6">
+            <div class="form-group">
+              <label>1st Team of Group F</label>
+              <select class="form-control" (change)="onChangeBonusPrediction(firstTeamInGroupFPrediction,$event.target.value)" name="f1">
+                <option [value]="null"></option>
+                <option *ngFor="let team of teamsOfGroupF" [selected]="team.TeamId===firstTeamInGroupFPrediction.TeamId" [value]="team.TeamId">{{team.TeamName}}</option>
+              </select>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="form-group">
+              <label>2nd Team of Group F</label>
+              <select class="form-control" (change)="onChangeBonusPrediction(secondTeamInGroupFPrediction,$event.target.value)" name="f2">
+                <option [value]="null"></option>
+                <option *ngFor="let team of teamsOfGroupF" [selected]="team.TeamId===secondTeamInGroupFPrediction.TeamId" [value]="team.TeamId">{{team.TeamName}}</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-6">
+            <div class="form-group">
+              <label>1st Team of Group G</label>
+              <select class="form-control" (change)="onChangeBonusPrediction(firstTeamInGroupGPrediction,$event.target.value)" name="g1">
+                <option [value]="null"></option>
+                <option *ngFor="let team of teamsOfGroupG" [selected]="team.TeamId===firstTeamInGroupGPrediction.TeamId" [value]="team.TeamId">{{team.TeamName}}</option>
+              </select>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="form-group">
+              <label>2nd Team of Group G</label>
+              <select class="form-control" (change)="onChangeBonusPrediction(secondTeamInGroupGPrediction,$event.target.value)" name="g2">
+                <option [value]="null"></option>
+                <option *ngFor="let team of teamsOfGroupG" [selected]="team.TeamId===secondTeamInGroupGPrediction.TeamId" [value]="team.TeamId">{{team.TeamName}}</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-6">
+            <div class="form-group">
+              <label>1st Team of Group H</label>
+              <select class="form-control" (change)="onChangeBonusPrediction(firstTeamInGroupHPrediction,$event.target.value)" name="h1">
+                <option [value]="null"></option>
+                <option *ngFor="let team of teamsOfGroupH" [selected]="team.TeamId===firstTeamInGroupHPrediction.TeamId" [value]="team.TeamId">{{team.TeamName}}</option>
+              </select>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="form-group">
+              <label>2nd Team of Group H</label>
+              <select class="form-control" (change)="onChangeBonusPrediction(secondTeamInGroupHPrediction,$event.target.value)" name="h2">
+                <option [value]="null"></option>
+                <option *ngFor="let team of teamsOfGroupH" [selected]="team.TeamId===secondTeamInGroupHPrediction.TeamId" [value]="team.TeamId">{{team.TeamName}}</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <h1 class="display-4 mt-3">Top-notchs</h1>
+        <hr />
+        <div class="row">
+          <div class="col-4">
+            <div class="form-group">
+              <label>1st Team</label>
+              <select class="form-control" (change)="onChangeBonusPrediction(firstTeamPrediction,$event.target.value)" name="w1">
+                <option [value]="null"></option>
+                <option *ngFor="let team of teams" [selected]="team.TeamId===firstTeamPrediction.TeamId" [value]="team.TeamId">{{team.TeamName}}</option>
+              </select>
+            </div>
+          </div>
+          <div class="col-4">
+            <div class="form-group">
+              <label>2nd Team</label>
+              <select class="form-control" (change)="onChangeBonusPrediction(secondTeamPrediction,$event.target.value)" name="w2">
+                <option [value]="null"></option>
+                <option *ngFor="let team of teams" [selected]="team.TeamId===secondTeamPrediction.TeamId" [value]="team.TeamId">{{team.TeamName}}</option>
+              </select>
+            </div>
+          </div>
+          <div class="col-4">
+            <div class="form-group">
+              <label>3rd Team</label>
+              <select class="form-control" (change)="onChangeBonusPrediction(thirdTeamPrediction,$event.target.value)" name="w3">
+                <option [value]="null"></option>
+                <option *ngFor="let team of teams" [selected]="team.TeamId===thirdTeamPrediction.TeamId" [value]="team.TeamId">{{team.TeamName}}</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </ng-template>
+    </ngb-panel>
+    <ngb-panel id="static-1" title="Match Predictions">
+      <ng-template ngbPanelContent>
+        <div class="row p-3">
+          <div class="col-12">
+
+            <div class="row">
+              <div class="col">
+                <div class="btn-toolbar justify-content-between mb-5" role="toolbar" aria-label="Toolbar with button groups">
+                  <div class="btn-group mr-2" role="group" aria-label="First group">
+                    <button type="button" class="btn btn-secondary">A</button>
+                    <button type="button" class="btn btn-secondary">B</button>
+                    <button type="button" class="btn btn-secondary">C</button>
+                    <button type="button" class="btn btn-secondary">D</button>
+                    <button type="button" class="btn btn-secondary">E</button>
+                    <button type="button" class="btn btn-secondary">F</button>
+                    <button type="button" class="btn btn-secondary">G</button>
+                    <button type="button" class="btn btn-secondary">H</button>
+                    <button type="button" class="btn btn-secondary">Round of 16</button>
+                    <button type="button" class="btn btn-secondary">Quarter-finals</button>
+                    <button type="button" class="btn btn-secondary">Semi-finals</button>
+                    <button type="button" class="btn btn-secondary">Play-off</button>
+                    <button type="button" class="btn btn-secondary">Final</button>
+                  </div>
+                  <div class="btn-group mr-2" role="group" aria-label="Second group">
+                    <button type="button" class="btn btn-success">Predicted</button>
+                    <button type="button" class="btn btn-success">Non-predicted</button>
+                    <button type="button" class="btn btn-success">All</button>
+                  </div>
+                </div>
+              </div>
+            </div> 
+            
+
+            <div class="row">
+              <div *ngFor="let match of matches" class="col-4 mb-5">
+                <div class="card">
+                  <img class="card-img-top img-fluid" [src]="match.StadiumImageUrl" style="height: 200px;">
+                  <div class="card-body">
+                    <div>
+                      <div class="float-left">
+                        <i class="fas fa-home"></i>
+                        <span>
+                          {{match.CityName}}
+                        </span>
+                      </div>
+                      <div class="float-right">
+                        <span>
+                          {{match.StadiumName}}
+                        </span>
+                        <i class="fas fa-university"></i>
+                      </div>
+                    </div>
+                    <br />
+                    <hr />
+                    <div>
+                      <div class="float-left">
+                        <i class="far fa-calendar-alt"></i>
+                        <span>
+                          {{match.MatchDate}}
+                        </span>
+                      </div>
+                      <div class="float-right">
+                        <span>
+                          {{match.MatchTime}}
+                        </span>
+                        <i class="far fa-clock"></i>
+                      </div>
+                    </div>
+                    <br />
+                    <hr />
+                    <div>
+                      <div class="float-left">
+                        <i class="fas fa-users"></i>
+                        <span>
+                          {{match.HomeTeamName}}
+                        </span>
+                        <span *ngIf="match.MatchHasStarted"> - </span>
+                        <span *ngIf="match.MatchHasStarted">{{match.HomeTeamResult}}</span>
+                      </div>
+                      <div class="float-right">
+                        <span *ngIf="match.MatchHasStarted">{{match.AwayTeamResult}}</span>
+                        <span *ngIf="match.MatchHasStarted"> - </span>
+                        <span>
+                          {{match.AwayTeamName}}
+                        </span>
+                        <i class="fas fa-users"></i>
+                      </div>
+                    </div>
+                    <br />
+                    <hr />
+                    <div>
+
+                      <div class="row" *ngIf="showNewPrediction(match)">
+                        <div class="col">
+                          <button type="button" class="btn btn-success btn-block" style="max-width:100%" (click)="openPredictDialog(match)">
+                            <i class="far fa-lightbulb"></i>
+                            Predict this match
+                          </button>
+                        </div>
+                      </div>
+
+                      <div class="row" *ngIf="showEditPrediction(match)">
+                        <div class="col">
+                          <button type="button" class="btn btn-outline-success btn-block" style="max-width:100%" (click)="openPredictDialog(match)">
+                            <i class="fas fa-lightbulb float-left" style="color:yellow"></i>
+                            {{match.HomeTeamPredictionResult}} <span> - </span> {{match.AwayTeamPredictionResult}}
+                            <i class="fas fa-lightbulb float-right align-middle" style="color:yellow"></i>
+                          </button>
+                        </div>
+                      </div>
+
+                      <div class="row" *ngIf="match.MatchHasStarted">
+                        <div class="col">
+                          <button type="button" class="btn btn-warning btn-block disabled" style="max-width:100%" (click)="openPredictDialog(match)">
+                            <i class="fas fa-lightbulb float-left" style="color:yellow"></i>
+                            <span>
+                              {{match.HomeTeamPredictionResult}} <span> - </span> {{match.AwayTeamPredictionResult}}
+                            </span>
+                            <i class="fas fa-lightbulb float-right align-middle" style="color:yellow"></i>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                    <hr />
+                    <div class="row">
+                      <div class="col">
+                        <div class="btn btn-primary btn-block" style="max-width:100%;cursor:default">
+                          <i class="fas fa-star float-left align-middle" style="color:yellow"></i>
+                          <span *ngIf="match.MatchHasStarted">{{match.Score}}</span>
+                          <span *ngIf="!match.MatchHasStarted">Score (After match)</span>
+                          <i class="fas fa-star float-right align-middle" style="color:yellow"></i>
+                        </div>
+                      </div>
+                    </div>
+                    <hr />
+                    <div class="row">
+                      <div class="col">
+                        <button type="button" class="btn btn-info btn-block" [ngClass]="{disabled: !match.MatchHasStarted}" style="max-width:100%" (click)="openMatchStatsDialog(match)">
+                          <i class="fas fa-book"></i>
+                          Match Stats
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </ng-template>
+    </ngb-panel>
+  </ngb-accordion>
+
+</div>
+
+
+<ng-template #predictMatch let-c="close" let-d="dismiss">
+
+  <div class="modal-header">
+
+    <h4 class="modal-title">Match Prediction</h4>
+    <button type="button" class="close" aria-label="Close" (click)="d('Cross click')">
+      <span aria-hidden="true">&times;</span>
+    </button>
+
+  </div>
+
+  <div class="modal-body">
+    <p>Please predict the following match.</p>
+    <div class="row">
+      <div class="col-6">
+        <div class="form-group">
+          <label for="groupCode">{{selectedMatch.HomeTeamName}}</label>
+          <input type="number" class="form-control" placeholder="0" [(ngModel)]="matchPrediction.HomeTeamPredictionResult">
+          <small class="form-text text-muted">Your prediction for {{selectedMatch.HomeTeamName}}.</small>
+        </div>
+      </div>
+      <div class="col-6">
+        <div class="form-group">
+          <label for="groupCode">{{selectedMatch.AwayTeamName}}</label>
+          <input type="number" class="form-control" placeholder="0" [(ngModel)]="matchPrediction.AwayTeamPredictionResult">
+          <small class="form-text text-muted">Your prediction for {{selectedMatch.AwayTeamName}}.</small>
+        </div>
+      </div>
+    </div>
+
+    <div class="row" *ngIf="showPenaltyWinnerSelection(selectedMatch,matchPrediction)">
+      <div class="col-12">
+        <div class="form-group">
+          <label for="groupCode">Which team is the ultimate winner in penalties?</label>
+          <select class="form-control" [(ngModel)]="matchPrediction.PenaltyWinnerTeamId">
+            <option [value]="selectedMatch.HomeTeamId">{{selectedMatch.HomeTeamName}}</option>
+            <option [value]="selectedMatch.AwayTeamId">{{selectedMatch.AwayTeamName}}</option>
+          </select>
+          <small class="form-text text-muted">Choose the ultimate winner of the game.</small>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="modal-footer">
+    <button type="button" class="btn btn-outline-dark" (click)="c('Close click')">Close</button>
+    <button type="button" class="btn btn-success" (click)="saveMatchPrediction()">Save</button>
+  </div>
+
+</ng-template>
+
+
+<ng-template #matchStats let-c="close" let-d="dismiss">
+
+  <div class="modal-header">
+
+    <h4 class="modal-title">Match Stats</h4>
+    <button type="button" class="close" aria-label="Close" (click)="d('Cross click')">
+      <span aria-hidden="true">&times;</span>
+    </button>
+
+  </div>
+
+  <div class="modal-body">
+    <div class="row p-3">
+      <div class="col-12">
+        <div class="table-responsive">
+          <table class="table table-hover">
+            <caption>All Predictions.</caption>
+            <thead>
+              <tr>
+                <th scope="col">#</th>
+                <th scope="col">Name</th>
+                <th scope="col">Score</th>
+                <th scope="col">{{selectedMatch.HomeTeamName}}</th>
+                <th scope="col">{{selectedMatch.AwayTeamName}}</th>
+                <th scope="col">Penalty</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let matchStat of selectedMatchStats; index as i" class="table-success align-middle">
+                <th class="align-middle" scope="row">{{i+1}}</th>
+                <td class="align-middle">
+                  <img [src]="matchStat.UserImageUrl" height="50" style="border-radius:50px" />
+                  {{matchStat.UserName}}
+                </td>
+                <td class="align-middle">{{matchStat.Score}}</td>
+                <td class="align-middle">{{matchStat.HomeTeamResult}}</td>
+                <td class="align-middle">{{matchStat.AwayTeamResult}}</td>
+                <td class="align-middle">{{matchStat.PenaltyWinnerTeamName}}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</ng-template>
+
+
+<toaster-container [toasterconfig]="config"></toaster-container>

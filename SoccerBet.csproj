@@ -1,0 +1,121 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <TypeScriptCompileBlocked>true</TypeScriptCompileBlocked>
+    <TypeScriptToolsVersion>Latest</TypeScriptToolsVersion>
+    <IsPackable>false</IsPackable>
+    <SpaRoot>ClientApp\</SpaRoot>
+    <DefaultItemExcludes>$(DefaultItemExcludes);$(SpaRoot)node_modules\**</DefaultItemExcludes>
+
+    <!-- Set this to true if you enable server-side prerendering -->
+    <BuildServerSideRenderer>false</BuildServerSideRenderer>
+    <UserSecretsId>cf60095c-23cd-439a-90ee-c09f7b8424a0</UserSecretsId>
+    <Platforms>AnyCPU;x64;x86</Platforms>
+    <ApplicationInsightsResourceId>/subscriptions/e47ec37e-8d49-4aef-a724-e890b8e575f5/resourcegroups/SoccerBetResourceGroup/providers/microsoft.insights/components/SoccerBetApplicationInsight</ApplicationInsightsResourceId>
+    <ApplicationInsightsAnnotationResourceId>/subscriptions/e47ec37e-8d49-4aef-a724-e890b8e575f5/resourcegroups/SoccerBetResourceGroup/providers/microsoft.insights/components/SoccerBetApplicationInsight</ApplicationInsightsAnnotationResourceId>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <PlatformTarget>x86</PlatformTarget>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Don't publish the SPA source files, but do show them in the project files list -->
+    <Content Remove="$(SpaRoot)**" />
+    <None Include="$(SpaRoot)**" Exclude="$(SpaRoot)node_modules\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="ClientApp\src\app\models\BetGroup.ts" />
+    <None Remove="ClientApp\src\app\models\BonusPrediction.ts" />
+    <None Remove="ClientApp\src\app\models\JwtToken.ts" />
+    <None Remove="ClientApp\src\app\models\Match.ts" />
+    <None Remove="ClientApp\src\app\models\MatchPrediction.ts" />
+    <None Remove="ClientApp\src\app\models\MatchStat.ts" />
+    <None Remove="ClientApp\src\app\models\Team.ts" />
+    <None Remove="ClientApp\src\app\models\UserRank.ts" />
+    <None Remove="ClientApp\src\app\models\UserSetting.ts" />
+    <None Remove="ClientApp\src\app\models\UserToken.ts" />
+    <None Remove="ClientApp\src\app\services\AuthGaurd.ts" />
+    <None Remove="ClientApp\src\app\services\AuthService.ts" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <TypeScriptCompile Include="ClientApp\src\app\models\BonusPrediction.ts" />
+    <TypeScriptCompile Include="ClientApp\src\app\models\MatchStat.ts" />
+    <TypeScriptCompile Include="ClientApp\src\app\models\Team.ts" />
+    <TypeScriptCompile Include="ClientApp\src\app\models\BetGroup.ts" />
+    <TypeScriptCompile Include="ClientApp\src\app\models\JwtToken.ts" />
+    <TypeScriptCompile Include="ClientApp\src\app\models\Match.ts" />
+    <TypeScriptCompile Include="ClientApp\src\app\models\MatchPrediction.ts" />
+    <TypeScriptCompile Include="ClientApp\src\app\models\UserRank.ts" />
+    <TypeScriptCompile Include="ClientApp\src\app\models\UserSetting.ts" />
+    <TypeScriptCompile Include="ClientApp\src\app\models\UserToken.ts" />
+    <TypeScriptCompile Include="ClientApp\src\app\services\AuthGaurd.ts" />
+    <TypeScriptCompile Include="ClientApp\src\app\services\AuthService.ts" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="logs\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.3.0" />
+    <PackageReference Include="Microsoft.AspNetCore.All" Version="2.1.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity" Version="2.1.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="2.1.0" />
+    <PackageReference Include="Microsoft.AspNetCore.SpaServices" Version="2.1.0" />
+    <PackageReference Include="Microsoft.AspNetCore.SpaServices.Extensions" Version="2.1.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="2.1.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="2.1.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.AzureKeyVault" Version="2.1.0" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="5.2.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="ClientApp\src\app\models\BonusPrediction.js">
+      <DependentUpon>BonusPrediction.ts</DependentUpon>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <WCFMetadata Include="Connected Services" />
+  </ItemGroup>
+
+  <Target Name="DebugEnsureNodeEnv" BeforeTargets="Build" Condition=" '$(Configuration)' == 'Debug' And !Exists('$(SpaRoot)node_modules') ">
+    <!-- Ensure Node.js is installed -->
+    <Exec Command="node --version" ContinueOnError="true">
+      <Output TaskParameter="ExitCode" PropertyName="ErrorCode" />
+    </Exec>
+    <Error Condition="'$(ErrorCode)' != '0'" Text="Node.js is required to build and run this project. To continue, please install Node.js from https://nodejs.org/, and then restart your command prompt or IDE." />
+    <Message Importance="high" Text="Restoring dependencies using 'npm'. This may take several minutes..." />
+    <Exec WorkingDirectory="$(SpaRoot)" Command="npm install" />
+  </Target>
+
+  <Target Name="PublishRunWebpack" AfterTargets="ComputeFilesToPublish">
+    <!-- As part of publishing, ensure the JS resources are freshly built in production mode -->
+    <Exec WorkingDirectory="$(SpaRoot)" Command="npm install" />
+    <Exec WorkingDirectory="$(SpaRoot)" Command="npm run build -- --prod" />
+    <Exec WorkingDirectory="$(SpaRoot)" Command="npm run build:ssr -- --prod" Condition=" '$(BuildServerSideRenderer)' == 'true' " />
+
+    <!-- Include the newly-built files in the publish output -->
+    <ItemGroup>
+      <DistFiles Include="$(SpaRoot)dist\**; $(SpaRoot)dist-server\**" />
+      <DistFiles Include="$(SpaRoot)node_modules\**" Condition="'$(BuildServerSideRenderer)' == 'true'" />
+      <ResolvedFileToPublish Include="@(DistFiles->'%(FullPath)')" Exclude="@(ResolvedFileToPublish)">
+        <RelativePath>%(DistFiles.Identity)</RelativePath>
+        <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+      </ResolvedFileToPublish>
+    </ItemGroup>
+  </Target>
+
+</Project>

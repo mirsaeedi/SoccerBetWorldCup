@@ -1,0 +1,45 @@
+<div class="card">
+  <div class="card-header text-white bg-primary" style="font-size:3em">
+    <i class="fas fa-star" style="color:yellow"></i>
+    Rankings
+  </div>
+  <div class="card-body">
+    <div class="row p-3">
+      <div class="col-12">
+        <div class="table-responsive">
+          <table class="table table-hover">
+            <thead>
+              <tr>
+                <th scope="col">#</th>
+                <th scope="col">Name</th>
+                <th scope="col">Match Score</th>
+                <th scope="col">Bonus Score</th>
+                <th scope="col">Total Score</th>
+                <th scope="col">#Corrects</th>
+                <th scope="col">#Goal Differences</th>
+                <th scope="col">#Match Winners</th>
+                <th scope="col">#Wrongs</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let userRank of userRanks;index as i" class="table-success">
+                <th class="align-middle" scope="row">{{i}}</th>
+                <td class="align-middle">
+                <img [src]="userRank.UserImageUrl" height="50" style="border-radius:50px" />{{userRank.UserName}}
+                </td>
+                <td class="align-middle">{{userRank.MatchScore}}</td>
+                <td class="align-middle">{{userRank.BonusScore}}</td>
+                <td class="align-middle">{{userRank.CorrectPredictions}}</td>
+                <td class="align-middle">{{userRank.GoalDifferencePredictions}}</td>
+                <td class="align-middle">{{userRank.WrongPredictions}}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
