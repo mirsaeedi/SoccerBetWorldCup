@@ -513,7 +513,7 @@ namespace SoccerBet.Controllers
             var userStatusResult = new
             {
                 Rank = userRank + 1,
-                Score = score,
+                Score = score.BonusScore + score.MatchScore,
                 sortedArray[userRank].GoalDifferencePredictions,
                 sortedArray[userRank].CorrectPredictions,
                 sortedArray[userRank].WrongPredictions,

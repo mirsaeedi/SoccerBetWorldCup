@@ -23,15 +23,17 @@
             </thead>
             <tbody>
               <tr *ngFor="let userRank of userRanks;index as i" class="table-success">
-                <th class="align-middle" scope="row">{{i}}</th>
+                <th class="align-middle" scope="row">{{i+1}}</th>
                 <td class="align-middle">
-                <img [src]="userRank.UserImageUrl" height="50" style="border-radius:50px" />{{userRank.UserName}}
+                  <img [src]="userRank.UserImageUrl" height="50" style="border-radius:50px" />{{userRank.UserName}}
                 </td>
-                <td class="align-middle">{{userRank.MatchScore}}</td>
-                <td class="align-middle">{{userRank.BonusScore}}</td>
-                <td class="align-middle">{{userRank.CorrectPredictions}}</td>
-                <td class="align-middle">{{userRank.GoalDifferencePredictions}}</td>
-                <td class="align-middle">{{userRank.WrongPredictions}}</td>
+                <td class="align-middle text-center">{{userRank.MatchScore}}</td>
+                <td class="align-middle text-center">{{userRank.BonusScore}}</td>
+                <td class="align-middle text-center">{{userRank.BonusScore+userRank.MatchScore}}</td>
+                <td class="align-middle text-center">{{userRank.CorrectPredictions}}</td>
+                <td class="align-middle text-center">{{userRank.GoalDifferencePredictions}}</td>
+                <td class="align-middle text-center">{{userRank.MatchWinnerPredictions}}</td>
+                <td class="align-middle text-center">{{userRank.WrongPredictions}}</td>
               </tr>
             </tbody>
           </table>
@@ -40,6 +42,7 @@
     </div>
   </div>
 </div>
+
 
 
 

@@ -44,6 +44,7 @@
     <None Remove="ClientApp\src\app\models\Team.ts" />
     <None Remove="ClientApp\src\app\models\UserRank.ts" />
     <None Remove="ClientApp\src\app\models\UserSetting.ts" />
+    <None Remove="ClientApp\src\app\models\UserStatus.ts" />
     <None Remove="ClientApp\src\app\models\UserToken.ts" />
     <None Remove="ClientApp\src\app\services\AuthGaurd.ts" />
     <None Remove="ClientApp\src\app\services\AuthService.ts" />
@@ -59,6 +60,7 @@
     <TypeScriptCompile Include="ClientApp\src\app\models\MatchPrediction.ts" />
     <TypeScriptCompile Include="ClientApp\src\app\models\UserRank.ts" />
     <TypeScriptCompile Include="ClientApp\src\app\models\UserSetting.ts" />
+    <TypeScriptCompile Include="ClientApp\src\app\models\UserStatus.ts" />
     <TypeScriptCompile Include="ClientApp\src\app\models\UserToken.ts" />
     <TypeScriptCompile Include="ClientApp\src\app\services\AuthGaurd.ts" />
     <TypeScriptCompile Include="ClientApp\src\app\services\AuthService.ts" />

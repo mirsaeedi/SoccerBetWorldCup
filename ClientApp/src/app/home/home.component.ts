@@ -12,6 +12,7 @@ import { Team } from '../models/Team';
 import { BonusPrediction } from '../models/BonusPrediction';
 import { MatchStat } from '../models/MatchStat';
 import { ToasterService, ToasterConfig } from 'angular2-toaster';
+import { UserStatus } from '../models/UserStatus';
 
 @Component({
   selector: 'app-home',
@@ -19,6 +20,7 @@ import { ToasterService, ToasterConfig } from 'angular2-toaster';
 })
 export class HomeComponent implements OnInit{
 
+  userStatus: UserStatus;
   selectedMatchStats: MatchStat[];
   teams: Team[]
   bonusPredictions: BonusPrediction[];
@@ -116,6 +118,11 @@ export class HomeComponent implements OnInit{
         this.selectedBetGroup = betGroups[0];
         this.authService.setSelectedBetGroup(betGroups[0]);
         this.showBetGroupSelection = betGroups.length > 1;
+
+        this.http.get<UserStatus>('api/me/status', { params: { BetGroupId: this.selectedBetGroup.Id.toString() } })
+          .subscribe(userStatus => {
+            this.userStatus = userStatus;
+          });
 
         this.http.get<Team[]>('api/teams').subscribe(result => {
 

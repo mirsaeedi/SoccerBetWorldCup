@@ -19,66 +19,96 @@
 
   <div class="row text-center">
 
-    <div class="col-4">
-      <div class="card rounded text-white bg-primary mb-3" style="
-    border-radius: 200px!important;
-    box-shadow: 0px 4px 34px 7px rgba(181,83,108,1);">
+    <div class="col-2">
+      <div class="card rounded text-white bg-primary mb-3" style="border-radius: 200px!important; box-shadow: 0px 4px 34px 7px rgba(181,83,108,1);">
         <div class="card-header text-center">
-          <div style="font-size:3em; color:yellow">
+          <div style="font-size:20px; color:yellow">
             <i class="fas fa-star"></i>
           </div>
-          <p style="font-size:30px;margin:0">Score</p>
+          <p style="font-size:20px;margin:0">Score</p>
         </div>
         <div class="card-body">
-          <p class="card-text text-center" style="font-size:30px">5</p>
+          <p class="card-text text-center" style="font-size:20px">{{userStatus.Score}}</p>
         </div>
       </div>
     </div>
 
-    <div class="col-4">
+    <div class="col-2">
       <div class="card text-white bg-success mb-3" style="
     border-radius: 200px!important;
     box-shadow: 0px 4px 34px 7px rgba(181,83,108,1);">
         <div class="card-header text-center">
-          <div style="font-size:3em; color:yellow">
+          <div style="font-size:20px; color:yellow">
             <i class="fas fa-trophy"></i>
-            <p style="font-size:30px;margin:0">Rank</p>
+            <p style="font-size:20px;margin:0">Rank</p>
           </div>
         </div>
         <div class="card-body text-center">
-          <p class="card-text text-center" style="font-size:30px">5</p>
+          <p class="card-text text-center" style="font-size:20px">{{userStatus.Rank}}</p>
         </div>
       </div>
     </div>
 
-    <div class="col-4">
-      <div class="card text-white bg-danger mb-3" style="border-radius: 200px!important;box-shadow:0px 4px 34px 7px rgba(181,83,108,1);">
+    <div class="col-2">
+      <div class="card text-white bg-danger mb-3" style="
+    border-radius: 200px!important;
+    box-shadow: 0px 4px 34px 7px rgba(181,83,108,1);">
         <div class="card-header text-center">
-          <div style="font-size:3em; color:yellow">
+          <div style="font-size:20px; color:yellow">
             <i class="fas fa-lightbulb"></i>
-            <p style="font-size:30px;margin:0">Predictions</p>
+            <p style="font-size:20px;margin:0">Corrects</p>
           </div>
         </div>
         <div class="card-body text-center">
+          <p class="card-text text-center" style="font-size:20px">{{userStatus.CorrectPredictions}}</p>
+        </div>
+      </div>
+    </div>
 
-          
-
-          <div class="row">
-            <div class="col-6" style="padding:0">
-              <div style="border-right: 1px solid #c8ced3">
-                <div style="font-size: 30px;font-weight: 600;">
-                  89
-                </div>
-              </div>
-            </div>
-            <div class="col-6" style="padding:0">
-              <div style="padding:0">
-                <div style="font-size:30px;font-weight: 600;">
-                  89
-                </div>
-              </div>
-            </div>
+    <div class="col-2">
+      <div class="card text-white bg-danger mb-3" style="
+    border-radius: 200px!important;
+    box-shadow: 0px 4px 34px 7px rgba(181,83,108,1);">
+        <div class="card-header text-center">
+          <div style="font-size:20px; color:yellow">
+            <i class="fas fa-lightbulb"></i>
+            <p style="font-size:20px;margin:0">Goal Diff</p>
           </div>
+        </div>
+        <div class="card-body text-center">
+          <p class="card-text text-center" style="font-size:20px">{{userStatus.GoalDifferencePredictions}}</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-2">
+      <div class="card text-white bg-danger mb-3" style="
+    border-radius: 200px!important;
+    box-shadow: 0px 4px 34px 7px rgba(181,83,108,1);">
+        <div class="card-header text-center">
+          <div style="font-size:20px; color:yellow">
+            <i class="fas fa-lightbulb"></i>
+            <p style="font-size:20px;margin:0">Match Winner</p>
+          </div>
+        </div>
+        <div class="card-body text-center">
+          <p class="card-text text-center" style="font-size:20px">{{userStatus.MatchWinnerPredictions}}</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-2">
+      <div class="card text-white bg-info mb-3" style="
+    border-radius: 200px!important;
+    box-shadow: 0px 4px 34px 7px rgba(181,83,108,1);">
+        <div class="card-header text-center">
+          <div style="font-size:20px; color:yellow">
+            <i class="fas fa-lightbulb"></i>
+            <p style="font-size:20px;margin:0">Wrongs</p>
+          </div>
+        </div>
+        <div class="card-body text-center">
+          <p class="card-text text-center" style="font-size:20px">{{userStatus.WrongPredictions}}</p>
         </div>
       </div>
     </div>
