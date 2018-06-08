@@ -20,7 +20,7 @@ import { UserStatus } from '../models/UserStatus';
 })
 export class HomeComponent implements OnInit{
 
-  userStatus: UserStatus;
+  userStatus= new UserStatus();
   selectedMatchStats: MatchStat[];
   teams: Team[]
   bonusPredictions: BonusPrediction[];
@@ -178,6 +178,17 @@ export class HomeComponent implements OnInit{
             for (var i = 0; i < matches.length; i++) {
               matches[i].MatchDate = moment(matches[i].MatchDateTime).format('YYYY/MM/DD');
               matches[i].MatchTime = moment(matches[i].MatchDateTime).format('hh:mm');
+              matches[i].MatchTypeDescription = (matches[i].MatchType == 0)
+                ? matches[i].WorldCupGroupName
+                : (matches[i].MatchType == 1)
+                  ? 'Round of 16'
+                  : (matches[i].MatchType == 2)
+                    ? 'Quarter-final'
+                    : (matches[i].MatchType == 3)
+                      ? 'Semi-final'
+                      : (matches[i].MatchType == 4)
+                        ? 'Play-off'
+                        : (matches[i].MatchType == 4) ?'Final': '';
             }
 
             this.matches = matches;

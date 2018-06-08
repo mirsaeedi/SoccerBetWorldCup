@@ -21,5 +21,7 @@ export class Match{
   StadiumImageUrl: string;
   MatchHasStarted: boolean;
   MatchType: number;
+  MatchTypeDescription: string;
   Score: number;
+  WorldCupGroupName: string;
 }

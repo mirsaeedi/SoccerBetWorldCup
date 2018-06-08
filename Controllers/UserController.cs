@@ -51,7 +51,8 @@ namespace SoccerBet.Controllers
             var scoreCalculator = new ScoreCalculator(matchRules, bonusRules);
 
             var matches = await _dbContext.Matches
-                .Include(m => m.HomeTeamScore.Team)
+                .Include(m => m.HomeTeamScore.Team.TeamWorldCupGroups)
+                .ThenInclude(m => m.WorldCupGroup)
                 .Include(m => m.AwayTeamScore.Team)
                 .Include(m => m.Stadium)
                 .ToArrayAsync();
@@ -65,7 +66,7 @@ namespace SoccerBet.Controllers
             var result = matches.Select(match => new
             {
                 match.Id,
-
+                WorldCupGroupName=match.HomeTeamScore.Team.TeamWorldCupGroups.First().WorldCupGroup.Name,
                 HomeTeamName = match.HomeTeamScore.Team.Name,
                 AwayTeamName = match.AwayTeamScore.Team.Name,
                 HomeTeamId = match.HomeTeamScore.Team.Id,
