@@ -13,6 +13,7 @@ import { BonusPrediction } from '../models/BonusPrediction';
 import { MatchStat } from '../models/MatchStat';
 import { ToasterService, ToasterConfig } from 'angular2-toaster';
 import { UserStatus } from '../models/UserStatus';
+import { group } from '@angular/animations';
 
 @Component({
   selector: 'app-home',
@@ -20,6 +21,7 @@ import { UserStatus } from '../models/UserStatus';
 })
 export class HomeComponent implements OnInit{
 
+  filteredMatches: Match[];
   userStatus= new UserStatus();
   selectedMatchStats: MatchStat[];
   teams: Team[]
@@ -175,6 +177,8 @@ export class HomeComponent implements OnInit{
           .get<Match[]>('api/me/matches', { params: { BetGroupId: this.selectedBetGroup.Id.toString() } })
           .subscribe(matches => {
 
+
+
             for (var i = 0; i < matches.length; i++) {
               matches[i].MatchDate = moment(matches[i].MatchDateTime).format('YYYY/MM/DD');
               matches[i].MatchTime = moment(matches[i].MatchDateTime).format('hh:mm');
@@ -192,10 +196,35 @@ export class HomeComponent implements OnInit{
             }
 
             this.matches = matches;
+            this.filteredMatches = matches;
+
           });
       });
   }
 
+  filterMatchesBasedOnType(matchType: number, groupName: string): void {
+
+    if (matchType == 0) {
+      this.filteredMatches = this.matches.filter(q => q.MatchType == matchType && q.WorldCupGroupName == `Group ${groupName}`);
+    }
+    else {
+      this.filteredMatches = this.matches.filter(q => q.MatchType == matchType);
+    }
+
+  }
+
+  filterMatchesBasedOnPredictionType(predictionType: number|null): void {
+
+    if (predictionType == 0) {
+      this.filteredMatches = this.matches.filter(q => q.AwayTeamPredictionResult!=null);
+    }
+    else if (predictionType == 1) {
+      this.filteredMatches = this.matches.filter(q => q.AwayTeamPredictionResult==null);
+    }
+    else if (predictionType == null) {
+      this.filteredMatches = this.matches;
+    }
+  }
 
   onChangeBonusPrediction(bonusPrediction: BonusPrediction, teamId: number | null): void {
 
