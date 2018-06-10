@@ -237,10 +237,14 @@ export class HomeComponent implements OnInit{
         TeamId: teamId,
         BetGroupId: this.selectedBetGroup.Id
       })
-      .subscribe(() => {
+      .subscribe(
+        () => {
         let teamName = this.teams.find(q => q.TeamId == teamId).TeamName;
         bonusPrediction.TeamId = teamId;
         this.toasterService.pop('success', 'Successfully Saved', `Let's pray for ${teamName} 🤣😁✌`);
+      },
+      error => {
+        this.toasterService.pop('error', 'I`m sorry!', `Try harder! Choose another team.`);
       });
   }
     

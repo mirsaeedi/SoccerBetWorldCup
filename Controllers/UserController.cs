@@ -66,7 +66,7 @@ namespace SoccerBet.Controllers
             var result = matches.Select(match => new
             {
                 match.Id,
-                WorldCupGroupName=match.HomeTeamScore.Team.TeamWorldCupGroups.First().WorldCupGroup.Name,
+                WorldCupGroupName = match.HomeTeamScore.Team.TeamWorldCupGroups.First().WorldCupGroup.Name,
                 HomeTeamName = match.HomeTeamScore.Team.Name,
                 AwayTeamName = match.AwayTeamScore.Team.Name,
                 HomeTeamId = match.HomeTeamScore.Team.Id,
@@ -314,6 +314,33 @@ namespace SoccerBet.Controllers
         {
             var bonusPrediction = await _dbContext.BonusPredictions
                 .SingleOrDefaultAsync(q => q.Id == command.BonusPredictionId);
+
+            if (bonusPrediction.BonusPredictionType == BonusPredictionType.ThirdTeamInWorldCup
+                || bonusPrediction.BonusPredictionType == BonusPredictionType.SecondTeamInWorldCup
+                || bonusPrediction.BonusPredictionType == BonusPredictionType.FirstTeamInWorldCup)
+            {
+                var isAnotherPredictionWithThisTeam = await _dbContext
+                    .BonusPredictions
+                    .AnyAsync(q => q.UserBetGroupId == bonusPrediction.UserBetGroupId
+                    && q.TeamId == command.TeamId
+                    && (q.BonusPredictionType == BonusPredictionType.FirstTeamInWorldCup
+                    || q.BonusPredictionType == BonusPredictionType.SecondTeamInWorldCup
+                    || q.BonusPredictionType == BonusPredictionType.ThirdTeamInWorldCup));
+
+                if (isAnotherPredictionWithThisTeam)
+                    return BadRequest();
+            }
+            else
+            {
+                var isAnotherPredictionWithThisTeam = await _dbContext
+                   .BonusPredictions
+                   .AnyAsync(q => q.UserBetGroupId == bonusPrediction.UserBetGroupId
+                   && q.TeamId == command.TeamId
+                   && (q.WorldCupGroupId==bonusPrediction.WorldCupGroupId));
+
+                if (isAnotherPredictionWithThisTeam)
+                    return BadRequest();
+            }
 
             bonusPrediction.TeamId = command.TeamId;
             await _dbContext.SaveChangesAsync();
