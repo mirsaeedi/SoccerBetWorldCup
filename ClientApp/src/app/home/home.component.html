@@ -563,7 +563,7 @@
                 <th scope="col">Score</th>
                 <th scope="col">{{selectedMatch.HomeTeamName}}</th>
                 <th scope="col">{{selectedMatch.AwayTeamName}}</th>
-                <th scope="col">Penalty</th>
+                <th *ngIf="selectedMatch.MatchType!=0" scope="col">Penalty</th>
               </tr>
             </thead>
             <tbody>
@@ -576,7 +576,7 @@
                 <td class="align-middle">{{matchStat.Score}}</td>
                 <td class="align-middle">{{matchStat.HomeTeamResult}}</td>
                 <td class="align-middle">{{matchStat.AwayTeamResult}}</td>
-                <td class="align-middle">{{matchStat.PenaltyWinnerTeamName}}</td>
+                <td *ngIf="selectedMatch.MatchType!=0" class="align-middle">{{matchStat.PenaltyWinnerTeamName}}</td>
               </tr>
             </tbody>
           </table>
