@@ -180,8 +180,8 @@ export class HomeComponent implements OnInit{
 
 
             for (var i = 0; i < matches.length; i++) {
-              matches[i].MatchDate = moment(matches[i].MatchDateTime).format('YYYY/MM/DD');
-              matches[i].MatchTime = moment(matches[i].MatchDateTime).format('hh:mm');
+              matches[i].MatchDate = moment(matches[i].MatchDateTime).local().format('YYYY/MM/DD');
+              matches[i].MatchTime = moment(matches[i].MatchDateTime).local().format('hh:mm');
               matches[i].MatchTypeDescription = (matches[i].MatchType == 0)
                 ? matches[i].WorldCupGroupName
                 : (matches[i].MatchType == 1)
