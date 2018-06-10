@@ -2,7 +2,7 @@ import * as moment from 'moment';
 
 export class Match{
 
-  MatchUTCDateTime: Moment;
+  MatchUTCDateTime: moment.Moment;
   Id : number;
   HomeTeamName: string;
   AwayTeamName: string;

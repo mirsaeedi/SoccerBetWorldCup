@@ -68,8 +68,8 @@ namespace SoccerBet.Controllers
 
             var user = new User
             {
-                Email = info.Principal.FindFirst(ClaimTypes.Email).Value,
-                UserName = info.Principal.FindFirst(ClaimTypes.Email).Value,
+                Email = info.Principal.FindFirst(ClaimTypes.Email)?.Value,
+                UserName = info.Principal.FindFirst(ClaimTypes.Email)?.Value,
                 Name = info.Principal.FindFirst(ClaimTypes.Name).Value,
                 PhoneNumber = ""
             };
@@ -79,9 +79,14 @@ namespace SoccerBet.Controllers
                 var identifier = info.Principal.FindFirstValue(ClaimTypes.NameIdentifier);
                 user.ImageUrl = $"https://graph.facebook.com/{identifier}/picture?type=large";
             }
-            if (info.LoginProvider == "Google")
+            else if (info.LoginProvider == "Google")
             {
                 user.ImageUrl = info.Principal.FindFirst("Image").Value;
+            }
+            else if (info.LoginProvider == "Twitter")
+            {
+                var identifier = info.Principal.FindFirstValue(ClaimTypes.Name);
+                user.ImageUrl = $"https://twitter.com/{identifier}/profile_image?size=original";
             }
 
             var identResult = await _userManager.CreateAsync(user);
