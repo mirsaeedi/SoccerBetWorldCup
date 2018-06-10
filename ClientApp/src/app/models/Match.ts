@@ -1,5 +1,8 @@
+import * as moment from 'moment';
+
 export class Match{
 
+  MatchUTCDateTime: Moment;
   Id : number;
   HomeTeamName: string;
   AwayTeamName: string;

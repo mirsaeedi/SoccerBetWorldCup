@@ -180,6 +180,7 @@ export class HomeComponent implements OnInit{
 
 
             for (var i = 0; i < matches.length; i++) {
+              matches[i].MatchUTCDateTime = moment(matches[i].MatchDateTime);
               matches[i].MatchDate = moment(matches[i].MatchDateTime).local().format('YYYY/MM/DD');
               matches[i].MatchTime = moment(matches[i].MatchDateTime).local().format('HH:mm');
               matches[i].MatchTypeDescription = (matches[i].MatchType == 0)
@@ -195,7 +196,7 @@ export class HomeComponent implements OnInit{
                         : (matches[i].MatchType == 4) ?'Final': '';
             }
 
-            this.matches = matches;
+            this.matches = matches.sort((a, b) => a.MatchUTCDateTime.unix() - b.MatchUTCDateTime.unix());
             this.filteredMatches = matches;
 
           });
