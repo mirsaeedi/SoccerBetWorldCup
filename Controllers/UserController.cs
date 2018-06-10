@@ -86,6 +86,7 @@ namespace SoccerBet.Controllers
                 match.MatchHasStarted,
                 match.MatchType,
                 Score = scoreCalculator.CalculateMatchScore(match, predictions.ContainsKey(match.Id) ? predictions[match.Id] : null)
+                .score
             }).ToArray();
 
             return Ok(result);
@@ -366,7 +367,7 @@ namespace SoccerBet.Controllers
                 HomeTeamPenaltyResult = m.HomeTeamScore.PenaltyResult,
                 AwayTeamPenaltyResult = m.AwayTeamScore.PenaltyResult,
                 PenaltyWinnerTeamName = m.PenaltyWinner?.Name,
-                Score = scoreCalculator.CalculateMatchScore(match, m)
+                Score = scoreCalculator.CalculateMatchScore(match, m).score
             }).ToArray();
 
             return Ok(result);

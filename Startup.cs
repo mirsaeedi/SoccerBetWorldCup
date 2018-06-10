@@ -89,7 +89,7 @@ namespace SoccerBet
 
             services.AddAuthentication().AddFacebook(facebookOptions =>
             {
-                //facebookOptions.CallbackPath = new Microsoft.AspNetCore.Http.PathString("/api/account/signin/facebook");
+                facebookOptions.CallbackPath = new Microsoft.AspNetCore.Http.PathString("/api/account/signin/facebook");
                 facebookOptions.AppId = Configuration["Authentication:Facebook:AppId"];
                 facebookOptions.AppSecret = Configuration["Authentication:Facebook:AppSecret"];
                 facebookOptions.Scope.Add("public_profile");

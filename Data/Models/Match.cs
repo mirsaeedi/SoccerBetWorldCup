@@ -11,10 +11,10 @@ namespace SoccerBet.Data.Models
         public MatchType MatchType { get; set; }
         public TeamScore HomeTeamScore { get; set; }
         public TeamScore AwayTeamScore { get; set; }
-        public DateTime DateTime { get; set; }
+        public DateTimeOffset DateTime { get; set; }
         public long StadiumId { get; set; }
         public Stadium Stadium { get; set; }
-        public bool MatchHasStarted => DateTime < DateTime.Now;
+        public bool MatchHasStarted => DateTime.UtcDateTime < DateTimeOffset.Now;
         public int? GoalDifference
         {
             get
