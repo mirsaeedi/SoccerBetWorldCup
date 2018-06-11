@@ -69,6 +69,8 @@ namespace SoccerBet.Controllers
                 WorldCupGroupName = match.HomeTeamScore.Team.TeamWorldCupGroups.First().WorldCupGroup.Name,
                 HomeTeamName = match.HomeTeamScore.Team.Name,
                 AwayTeamName = match.AwayTeamScore.Team.Name,
+                HomeTeamFlagUrl = match.HomeTeamScore.Team.FlagUrl,
+                AwayTeamFlagUrl = match.AwayTeamScore.Team.FlagUrl,
                 HomeTeamId = match.HomeTeamScore.Team.Id,
                 AwayTeamId = match.AwayTeamScore.Team.Id,
                 HomeTeamResult = match.HomeTeamScore.MatchResult,

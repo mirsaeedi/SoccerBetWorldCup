@@ -27,4 +27,6 @@ export class Match{
   MatchTypeDescription: string;
   Score: number;
   WorldCupGroupName: string;
+  HomeTeamFlagUrl:string;
+  AwayTeamFlagUrl:string
 }

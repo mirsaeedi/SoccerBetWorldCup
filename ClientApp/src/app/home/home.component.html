@@ -401,24 +401,32 @@
                     <br />
                     <hr />
                     <div>
-                      <div class="float-left">
-                        <i class="fas fa-users"></i>
-                        <span>
-                          {{match.HomeTeamName}}
-                        </span>
-                        <span *ngIf="match.MatchHasStarted"> - </span>
-                        <span *ngIf="match.MatchHasStarted">{{match.HomeTeamResult}}</span>
-                      </div>
-                      <div class="float-right">
-                        <span *ngIf="match.MatchHasStarted">{{match.AwayTeamResult}}</span>
-                        <span *ngIf="match.MatchHasStarted"> - </span>
-                        <span>
-                          {{match.AwayTeamName}}
-                        </span>
-                        <i class="fas fa-users"></i>
+                      <div class="row">
+                        <div class="col-4 text-center">
+                          <img [src]="match.HomeTeamFlagUrl" height="25" style="box-shadow: -1px 2px 13px 1px rgba(0,0,0,0.75);" />
+                          <p style="font-size:12px;margin-top:3px;margin-bottom:3px">
+                            {{match.HomeTeamName}}
+                          </p>
+                        </div>
+                        <div class="col-4 text-center">
+                          <div *ngIf="match.MatchHasStarted" style="padding-top: 2px;
+    font-family: arial,sans-serif-light,sans-serif;
+    font-weight: normal;
+    font-size: 25px;">
+                            <span class="float-left">{{match.HomeTeamResult}}</span>
+                            <span> - </span>
+                            <span class="float-right">{{match.AwayTeamResult}}</span>
+                          </div>
+                        </div>
+                        <div class="col-4 text-center">
+                          <img [src]="match.AwayTeamFlagUrl" height="25" style="box-shadow: -1px 2px 13px 1px rgba(0,0,0,0.75);
+" />
+                          <p style="font-size:12px;margin-top:3px;margin-bottom:3px">
+                            {{match.AwayTeamName}}
+                          </p>
+                        </div>
                       </div>
                     </div>
-                    <br />
                     <hr />
                     <div>
 
