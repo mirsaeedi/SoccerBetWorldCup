@@ -33,6 +33,11 @@ export class AuthService {
     return this.http.get<JwtToken>('/signin/getToken');   
   }
 
+  public joinGroup(groupCode:string): Observable<JwtToken> {
+
+    return this.http.post<JwtToken>('/account/join-group', { GroupCode: groupCode })
+  }
+
   public setToken(authResult:string) {
     localStorage.setItem('auth_token', authResult);
   }
@@ -71,7 +76,8 @@ export class AuthService {
       Name: rawToken['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name'],
       PhoneNumber: rawToken['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/mobilephone'],
       Email: rawToken['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress'],
-      ImageUrl: rawToken['ImageUrl']
+      ImageUrl: rawToken['ImageUrl'],
+      BetGroupId: rawToken['BetGroupId']
     }
 
     return tokenBasedUser;

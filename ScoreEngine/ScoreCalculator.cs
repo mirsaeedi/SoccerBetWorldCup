@@ -17,21 +17,63 @@ namespace SoccerBet.ScoreEngine
             _matchRules = matchRules;
             _bonusRules = bonusRules;
         }
-        public MatchPredictionResult[] CalculateScoreForUser(User user, Match[] matches, MatchPrediction[] matchPredictions,
-            BonusPrediction[] bonusPredictions)
+        public MatchPredictionResult[] CalculateTotalMatchPredictionScoreForUser(User user, Match[] matches, MatchPrediction[] matchPredictions)
         {
             var result = new List<MatchPredictionResult>();
 
             var matchPredictionResult = CalculateMatchesScore(user, matches,matchPredictions);
             result.AddRange(matchPredictionResult);
-            //var bonusScore = CalculateBonusScore(user, matches, bonusPredictions);
 
             return result.ToArray();
         }
 
+        internal double CalculateTotalBonusPredictionScoreForUser(User user, Match[] matches, BonusPrediction[] bonusPredictions)
+        {
+            var result = new List<MatchPredictionResult>();
+
+            var bonusScore = CalculateBonusScore(user, matches, bonusPredictions);
+
+            return bonusScore;
+        }
+
         private double CalculateBonusScore(User user, Match[] matches, BonusPrediction[] bonusPredictions)
         {
-            throw new NotImplementedException();
+            var sum = 0;
+
+            var groupBonusPredictions = bonusPredictions
+                .Where(q => q.BonusPredictionType == BonusPredictionType.FirstTeamInGroup
+                || q.BonusPredictionType == BonusPredictionType.SecondTeamInGroup);
+
+            var groupByGroup = groupBonusPredictions.GroupBy(q=>q.WorldCupGroup.Id);
+
+            foreach (var group in groupByGroup)
+            {
+                var groupMatches = matches.Where(q => q.MatchType == MatchType.Group
+                  && q.HomeTeamScore.Team.WorldCupGroupId == group.Key)
+                  .ToArray();
+
+                sum+=CalculateBonusScoreForGroup(
+                    group.Single(q => q.BonusPredictionType == BonusPredictionType.FirstTeamInGroup).TeamId,
+                    group.Single(q => q.BonusPredictionType == BonusPredictionType.SecondTeamInGroup).TeamId,
+                    groupMatches);
+            }
+
+            var finalMatch = matches.SingleOrDefault(q => q.MatchType == MatchType.Final);
+            sum+=CalculateBonusScoreForTopNotch(
+                bonusPredictions.Single(q => q.BonusPredictionType == BonusPredictionType.FirstTeamInWorldCup).TeamId,
+                finalMatch, BonusPredictionType.FirstTeamInWorldCup);
+
+            sum += CalculateBonusScoreForTopNotch(
+                bonusPredictions.Single(q => q.BonusPredictionType == BonusPredictionType.SecondTeamInWorldCup).TeamId,
+                finalMatch, BonusPredictionType.SecondTeamInWorldCup);
+
+            var playoffMatch = matches.SingleOrDefault(q => q.MatchType == MatchType.ThirdPlacePlayOff);
+            sum += CalculateBonusScoreForTopNotch(
+                bonusPredictions.Single(q => q.BonusPredictionType == BonusPredictionType.ThirdTeamInWorldCup).TeamId,
+                finalMatch, BonusPredictionType.ThirdTeamInWorldCup);
+
+
+            return sum;
         }
 
         private MatchPredictionResult[] CalculateMatchesScore(User user, Match[] matches, MatchPrediction[] matchPredictions)
@@ -80,6 +122,12 @@ namespace SoccerBet.ScoreEngine
 
             if (matchPrediction.HomeTeamScore.MatchResult is null
                 || matchPrediction.AwayTeamScore.MatchResult is null)
+                return (null, null, 0);
+
+            if(matchPrediction.MatchResultType!=match.MatchResultType)
+                return (null, null, 0);
+
+            if (matchPrediction.MatchWinner?.Id!=match.MatchWinner?.Id)
                 return (null, null, 0);
 
             var matchRule = GetPredictionRule(match);
@@ -146,5 +194,127 @@ namespace SoccerBet.ScoreEngine
             return _matchRules
                 .SingleOrDefault(q => !q.MatchId.HasValue && !q.MatchType.HasValue);
         }
+
+        internal int CalculateBonusScoreForGroup(long? firstTeamId, long? secondTeamId, Match[] groupMatches)
+        {
+            var teamScores = new Dictionary<long,int>();
+            var teamGoals = new Dictionary<long, int>();
+            var teamOtherGoals = new Dictionary<long, int>();
+
+            foreach (var groupMatch in groupMatches)
+            {
+                var homeTeamId = groupMatch.HomeTeamScore.TeamId;
+                var awayTeamId = groupMatch.AwayTeamScore.TeamId;
+
+                if (!teamScores.ContainsKey(homeTeamId))
+                {
+                    teamScores.Add(homeTeamId, 0);
+                    teamGoals.Add(homeTeamId, 0);
+                    teamOtherGoals.Add(homeTeamId, 0);
+                }
+
+                if (!teamScores.ContainsKey(awayTeamId))
+                {
+                    teamScores.Add(awayTeamId, 0);
+                    teamGoals.Add(awayTeamId, 0);
+                    teamOtherGoals.Add(awayTeamId, 0);
+                }
+                    
+                if (groupMatch.HomeTeamScore.MatchResult.HasValue)
+                {
+                    teamGoals[awayTeamId] += groupMatch.AwayTeamScore.MatchResult.Value;
+                    teamGoals[homeTeamId] += groupMatch.HomeTeamScore.MatchResult.Value;
+
+                    teamOtherGoals[awayTeamId] += groupMatch.HomeTeamScore.MatchResult.Value;
+                    teamOtherGoals[homeTeamId] += groupMatch.AwayTeamScore.MatchResult.Value;
+
+                    if (groupMatch.HomeTeamScore.MatchResult > groupMatch.AwayTeamScore.MatchResult)
+                    {
+                        teamScores[homeTeamId] += 3;
+                    }
+                    else if (groupMatch.HomeTeamScore.MatchResult < groupMatch.AwayTeamScore.MatchResult)
+                    {
+                        teamScores[awayTeamId] += 3;
+                    }
+                    else
+                    {
+                        teamScores[homeTeamId] += 1;
+                        teamScores[awayTeamId] += 1;
+                    }
+                }
+            }
+
+            if (teamScores.Max(q => q.Value) == 0)
+                return 0;
+
+
+            var teamScoresAndGoals = new List<(long TeamId,int Score,int Goal,int otherGoal)>();
+
+            foreach (var teamScore in teamScores)
+            {
+                teamScoresAndGoals
+                    .Add(
+                        (teamScore.Key
+                        ,teamScore.Value
+                        ,teamGoals[teamScore.Key]
+                        ,teamOtherGoals[teamScore.Key]
+                        )
+                    );
+            }
+
+            teamScoresAndGoals = teamScoresAndGoals.OrderByDescending(q => q.Score)
+                .ThenByDescending(q => q.Goal)
+                .ThenBy(q => q.otherGoal)
+                .ToList();
+
+
+            var firstTeam = teamScoresAndGoals[0].TeamId;
+            var secondTeam = teamScoresAndGoals[1].TeamId;
+
+            var score = 0;
+
+            if (firstTeam == firstTeamId)
+                score++;
+            if (secondTeam == secondTeamId)
+                score++;
+            if (score == 2)
+                score++;
+
+            return score;
+        }
+
+        internal int CalculateBonusScoreForTopNotch(long? teamId, Match match, BonusPredictionType bonusPredictionType)
+        {
+            if (match == null)
+                return 0;
+
+            if (!match.HomeTeamScore.MatchResult.HasValue)
+                return 0;
+
+            var winnderId = 0L;
+
+            if (match.MatchWinner != null)
+            {
+                winnderId = match.MatchWinner.Id;
+            }
+            else if (match.PenaltyWinner!=null)
+            {
+                winnderId = match.PenaltyWinner.Id;
+            }
+
+            if (teamId != winnderId)
+                return 0;
+
+            if (bonusPredictionType == BonusPredictionType.FirstTeamInWorldCup)
+                return 6;
+            if (bonusPredictionType == BonusPredictionType.SecondTeamInGroup)
+                return 5;
+            if (bonusPredictionType == BonusPredictionType.ThirdTeamInWorldCup)
+                return 4;
+
+            return 0;
+        }
+
+
     }
 }

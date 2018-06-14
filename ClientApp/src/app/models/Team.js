@@ -1,9 +1,9 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-var BetGroup = /** @class */ (function () {
-    function BetGroup() {
+var Team = /** @class */ (function () {
+    function Team() {
     }
-    return BetGroup;
+    return Team;
 }());
-exports.BetGroup = BetGroup;
-//# sourceMappingURL=BetGroup.js.map
+exports.Team = Team;
+//# sourceMappingURL=Team.js.map

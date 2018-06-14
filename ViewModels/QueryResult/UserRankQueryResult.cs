@@ -10,11 +10,13 @@ namespace SoccerBet.ViewModels.QueryResult
         public string UserName { get; internal set; }
         public string UserImageUrl { get; internal set; }
         public double MatchScore { get; internal set; }
-        public int BonusScore { get; internal set; }
+        public double BonusScore { get; internal set; }
         public int CorrectPredictions { get; internal set; }
         public int GoalDifferencePredictions { get; internal set; }
         public int MatchWinnerPredictions { get; internal set; }
         public int WrongPredictions { get; internal set; }
         public long UserId { get; internal set; }
+
+        public double TotalScore => MatchScore + BonusScore;
     }
 }

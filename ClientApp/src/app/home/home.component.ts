@@ -14,6 +14,9 @@ import { MatchStat } from '../models/MatchStat';
 import { ToasterService, ToasterConfig } from 'angular2-toaster';
 import { UserStatus } from '../models/UserStatus';
 import { group } from '@angular/animations';
+import { GroupBonusPredictionStat } from '../models/GroupBonusPredictionStat';
+import { UserToken } from '../models/UserToken';
+import { BonusScore } from '../models/BonusScore';
 
 @Component({
   selector: 'app-home',
@@ -21,18 +24,29 @@ import { group } from '@angular/animations';
 })
 export class HomeComponent implements OnInit{
 
+  selectedGroupBonusPredictionStats: GroupBonusPredictionStat[];
   filteredMatches: Match[];
   userStatus= new UserStatus();
   selectedMatchStats: MatchStat[];
   teams: Team[]
   bonusPredictions: BonusPrediction[];
-  myBetGroups: BetGroup[];
-  selectedBetGroup: BetGroup;
   selectedMatch: Match;
   matchPrediction= new MatchPrediction();
-  showBetGroupSelection = false;
   matches: Match[];
   closeResult: string;
+
+  bonusScoreGroupA: BonusScore;
+  bonusScoreGroupB: BonusScore;
+  bonusScoreGroupC: BonusScore;
+  bonusScoreGroupD: BonusScore;
+  bonusScoreGroupE: BonusScore;
+  bonusScoreGroupF: BonusScore;
+  bonusScoreGroupG: BonusScore;
+  bonusScoreGroupH: BonusScore;
+  bonusScoreGroupFirst: BonusScore;
+  bonusScoreGroupSecond: BonusScore;
+  bonusScoreGroupThird: BonusScore;
+
 
   firstTeamPrediction = new BonusPrediction();
   secondTeamPrediction = new BonusPrediction();
@@ -70,9 +84,15 @@ export class HomeComponent implements OnInit{
   teamsOfGroupF: Team[];
   teamsOfGroupG: Team[];
   teamsOfGroupH: Team[];
+  currentUser: UserToken;
+  IsGroupPredicationEnabled= false;
+  IsTopNotchPredicationEnabled = false;
 
   @ViewChild('predictMatch') private predictMatchModal;
   @ViewChild('matchStats') private matchStatsModal;
+  @ViewChild('groupBonusPredictionMatchStats') private groupBonusPredictionMatchStatsModal;
+  @ViewChild('topNotchBonusPredictionMatchStats') private topNotchBonusPredictionMatchStatsModal;
+  
 
   openedModal: NgbModalRef;
   config: ToasterConfig =
@@ -111,26 +131,20 @@ export class HomeComponent implements OnInit{
 
   ngOnInit(): void {
 
-    var userToken = this.authService.getUser();
+    this.currentUser = this.authService.getUser();
 
-    this.http
-      .get<BetGroup[]>('api/me/bet-groups')
-      .subscribe(betGroups => {
-        this.myBetGroups = betGroups;
-        this.selectedBetGroup = betGroups[0];
-        this.authService.setSelectedBetGroup(betGroups[0]);
-        this.showBetGroupSelection = betGroups.length > 1;
+    this.http.get<UserStatus>('api/me/status', { params: { BetGroupId: this.currentUser.BetGroupId } })
+      .subscribe(userStatus => {
+        this.userStatus = userStatus;
+      });
 
-        this.http.get<UserStatus>('api/me/status', { params: { BetGroupId: this.selectedBetGroup.Id.toString() } })
-          .subscribe(userStatus => {
-            this.userStatus = userStatus;
-          });
+    this.http.get<Team[]>('api/teams')
+      .subscribe(result => {
 
-        this.http.get<Team[]>('api/teams').subscribe(result => {
+        this.teams = result;
 
-          this.teams = result;
-
-          this.http.get<BonusPrediction[]>('api/bonus-predictions', { params: { BetGroupId: this.selectedBetGroup.Id.toString() } }).subscribe(result => {
+        this.http.get<BonusPrediction[]>('api/bonus-predictions', { params: { BetGroupId: this.currentUser.BetGroupId } })
+          .subscribe(result => {
 
             this.bonusPredictions = result;
 
@@ -170,36 +184,60 @@ export class HomeComponent implements OnInit{
             this.secondTeamInGroupHPrediction = result.find(q => q.BonusPredictionType == 1 && q.WorldCupGroupName == 'Group H');
             this.teamsOfGroupH = this.teams.filter(q => q.WorldCupGroupName == 'Group H');
 
-          });
-        });
+            this.http.get<BonusScore[]>('api/bonus-predictions/scores', { params: { BetGroupId: this.currentUser.BetGroupId } })
+              .subscribe(result => {
 
-        this.http
-          .get<Match[]>('api/me/matches', { params: { BetGroupId: this.selectedBetGroup.Id.toString() } })
-          .subscribe(matches => {
+                this.bonusScoreGroupA = result.find(q => q.BonusType == `Group A`);
+                this.bonusScoreGroupB = result.find(q => q.BonusType == `Group B`);
+                this.bonusScoreGroupC = result.find(q => q.BonusType == `Group C`);
+                this.bonusScoreGroupD = result.find(q => q.BonusType == `Group D`);
+                this.bonusScoreGroupE = result.find(q => q.BonusType == `Group E`);
+                this.bonusScoreGroupF = result.find(q => q.BonusType == `Group F`);
+                this.bonusScoreGroupG = result.find(q => q.BonusType == `Group G`);
+                this.bonusScoreGroupH = result.find(q => q.BonusType == `Group H`);
+                this.bonusScoreGroupFirst = result.find(q => q.BonusType == `FirstTeamInWorldCup`);
+                this.bonusScoreGroupSecond = result.find(q => q.BonusType == `SecondTeamInWorldCup`);
+                this.bonusScoreGroupThird = result.find(q => q.BonusType == `ThirdTeamInWorldCup`);
 
-
-
-            for (var i = 0; i < matches.length; i++) {
-              matches[i].MatchUTCDateTime = moment(matches[i].MatchDateTime);
-              matches[i].MatchDate = moment(matches[i].MatchDateTime).local().format('YYYY/MM/DD');
-              matches[i].MatchTime = moment(matches[i].MatchDateTime).local().format('HH:mm');
-              matches[i].MatchTypeDescription = (matches[i].MatchType == 0)
-                ? matches[i].WorldCupGroupName
-                : (matches[i].MatchType == 1)
-                  ? 'Round of 16'
-                  : (matches[i].MatchType == 2)
-                    ? 'Quarter-final'
-                    : (matches[i].MatchType == 3)
-                      ? 'Semi-final'
-                      : (matches[i].MatchType == 4)
-                        ? 'Play-off'
-                        : (matches[i].MatchType == 4) ?'Final': '';
-            }
-
-            this.matches = matches.sort((a, b) => a.MatchUTCDateTime.unix() - b.MatchUTCDateTime.unix());
-            this.filteredMatches = matches;
+              });
 
           });
+      });
+
+    this.http
+      .get<Match[]>('api/me/matches', { params: { BetGroupId: this.currentUser.BetGroupId  } })
+      .subscribe(matches => {
+
+        for (var i = 0; i < matches.length; i++) {
+          matches[i].MatchUTCDateTime = moment(matches[i].MatchDateTime);
+          matches[i].MatchDate = moment(matches[i].MatchDateTime).local().format('YYYY/MM/DD');
+          matches[i].MatchTime = moment(matches[i].MatchDateTime).local().format('HH:mm');
+          matches[i].MatchTypeDescription = (matches[i].MatchType == 0)
+            ? matches[i].WorldCupGroupName
+            : (matches[i].MatchType == 1)
+              ? 'Round of 16'
+              : (matches[i].MatchType == 2)
+                ? 'Quarter-final'
+                : (matches[i].MatchType == 3)
+                  ? 'Semi-final'
+                  : (matches[i].MatchType == 4)
+                    ? 'Play-off'
+                    : (matches[i].MatchType == 4) ? 'Final' : '';
+        }
+
+        this.matches = matches.sort((a, b) => a.MatchUTCDateTime.unix() - b.MatchUTCDateTime.unix());
+
+        let firstGroupMatch = matches.filter(q => q.MatchType == 0)[0];
+        this.IsGroupPredicationEnabled = moment(firstGroupMatch.MatchDateTime).local() > moment(Date.now());
+
+        let firstRound16Match = matches.filter(q => q.MatchType == 1)[0];
+        if (firstRound16Match != null)
+          this.IsTopNotchPredicationEnabled = moment(firstRound16Match.MatchDateTime).local() > moment(Date.now());
+        else
+          this.IsTopNotchPredicationEnabled = true;
+
+        this.filteredMatches = matches;
+
       });
   }
 
@@ -227,7 +265,7 @@ export class HomeComponent implements OnInit{
     }
   }
 
-  onChangeBonusPrediction(bonusPrediction: BonusPrediction, teamId: number | null): void {
+  onChangeBonusPrediction(bonusPrediction: BonusPrediction, teamId: number | null ): void {
 
     if ((teamId == null && bonusPrediction.TeamId==null) || bonusPrediction.TeamId == teamId)
       return;
@@ -236,13 +274,19 @@ export class HomeComponent implements OnInit{
       {
         BonusPredictionId: bonusPrediction.Id,
         TeamId: teamId,
-        BetGroupId: this.selectedBetGroup.Id
+        BetGroupId: this.currentUser.BetGroupId
       })
       .subscribe(
-        () => {
-        let teamName = this.teams.find(q => q.TeamId == teamId).TeamName;
-        bonusPrediction.TeamId = teamId;
-        this.toasterService.pop('success', 'Successfully Saved', `Let's pray for ${teamName} 🤣😁✌`);
+      () => {
+
+        if (teamId>0) {
+
+          let teamName = this.teams.find(q => q.Id == teamId).TeamName;
+          bonusPrediction.TeamId = teamId;
+          this.toasterService.pop('success', 'Successfully Saved', `Let's pray for ${teamName} 🤣😁✌`);
+        } else {
+          this.toasterService.pop('success', 'Successfully Saved', ``);
+        }
       },
       error => {
         this.toasterService.pop('error', 'I`m sorry!', `Try harder! Choose another team.`);
@@ -278,13 +322,31 @@ export class HomeComponent implements OnInit{
       matchPrediction.HomeTeamPredictionResult == matchPrediction.AwayTeamPredictionResult;
   }
 
+  showBonusPredictionStatsForGroups(groupName:string): void {
+
+    this.http.get<GroupBonusPredictionStat[]>(`/api/bonus-predictions/groups/${groupName}`, { params: { BetGroupId: this.currentUser.BetGroupId } })
+      .subscribe(data => {
+        this.selectedGroupBonusPredictionStats = data;
+        this.open(this.groupBonusPredictionMatchStatsModal, { size: 'lg' });
+    });
+  }
+
+  showBonusPredictionStatsForTopNotchs(bonusPredictionType: number): void {
+
+    this.http.get<GroupBonusPredictionStat[]>(`/api/bonus-predictions/top-notchs/${bonusPredictionType}`, { params: { BetGroupId: this.currentUser.BetGroupId } })
+      .subscribe(data => {
+        this.selectedGroupBonusPredictionStats = data;
+        this.open(this.topNotchBonusPredictionMatchStatsModal, { size: 'lg' });
+      });
+  }
+
   saveMatchPrediction(): void {
 
     var prediction = {
       MatchId: this.selectedMatch.Id,
       HomeMatchResult: this.matchPrediction.HomeTeamPredictionResult,
       AwayMatchResult: this.matchPrediction.AwayTeamPredictionResult,
-      BetGroupId: this.selectedBetGroup.Id,
+      BetGroupId: this.currentUser.BetGroupId,
       PenaltyWinnerTeamId:(this.matchPrediction.HomeTeamPredictionResult == this.matchPrediction.AwayTeamPredictionResult)
         ? this.matchPrediction.PenaltyWinnerTeamId
         : null
@@ -323,7 +385,7 @@ export class HomeComponent implements OnInit{
     this.http.get<MatchStat[]>(`/api/match/${match.Id}/stats`, {
       params: {
         MatchId: this.selectedMatch.Id.toString(),
-        BetGroupId: this.selectedBetGroup.Id.toString()
+        BetGroupId: this.currentUser.BetGroupId
       }
     }).subscribe(result => {
       this.selectedMatchStats = result;

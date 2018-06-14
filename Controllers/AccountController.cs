@@ -8,24 +8,30 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using SoccerBet.Data;
 using SoccerBet.Data.Models;
+using SoccerBet.ViewModels.Command;
 
 namespace SoccerBet.Controllers
 {
     
     public class AccountController : Controller
     {
+        private readonly SoccerBetDbContext _dbContext;
         private readonly IOptions<JwtOptionConfiguration> _jwtOptionConfiguration;
         private readonly UserManager<User> _userManager;
         private readonly SignInManager<User> _signInManager;
 
         public AccountController(
+            SoccerBetDbContext dbContext,
             UserManager<User> userManager,
             SignInManager<User> signInManager,
             IOptions<JwtOptionConfiguration> jwtOptionConfiguration)
         {
+            _dbContext = dbContext;
             _jwtOptionConfiguration = jwtOptionConfiguration;
             _userManager = userManager;
             _signInManager = signInManager;
@@ -40,13 +46,34 @@ namespace SoccerBet.Controllers
             return new ChallengeResult(provider, properties);
         }
 
+        [Authorize]
+        [HttpPost("account/join-group")]
+        public async Task<IActionResult> JoinGroup([FromBody]JoinBetGroupCommand command)
+        {
+            var user = await GetCurrentUser();
+
+            var userBetGroup = await _dbContext
+                .UserBetGroups
+                .SingleOrDefaultAsync(q => q.BetGroup.GroupCode == command.GroupCode
+                && q.User.Id==user.Id);
+
+            if (userBetGroup?.BetGroupId == 0)
+                return BadRequest();
+
+            var token = GenerateJwtToken(user, userBetGroup.BetGroupId);
+            return Ok(new { Token = token });
+        }
+
         [Route("signin/gettoken")]
         [HttpGet]
         public async Task<IActionResult> GetToken()
         {
             var user = await _userManager.GetUserAsync(User);
 
-            var token = GenerateJwtToken(user);
+            var defaultUserBetGroup = await _dbContext.UserBetGroups
+                .FirstOrDefaultAsync(q => q.UserId == user.Id);
+
+            var token = GenerateJwtToken(user, defaultUserBetGroup?.BetGroupId);
 
             return Ok(new { Token= token });
         }
@@ -105,7 +132,7 @@ namespace SoccerBet.Controllers
             return null;
         }
 
-        private string GenerateJwtToken(User user)
+        private string GenerateJwtToken(User user,long? betGroupId)
         {
             var claims = new List<Claim>
             {
@@ -113,6 +140,7 @@ namespace SoccerBet.Controllers
                 new Claim(ClaimTypes.Name,user.Name),
                 new Claim(ClaimTypes.NameIdentifier, user.UserName),
                 new Claim("ImageUrl", user.ImageUrl??""),
+                new Claim("BetGroupId", betGroupId?.ToString()),
                 new Claim(ClaimTypes.MobilePhone, user.PhoneNumber??"")
             };
 
@@ -144,5 +172,9 @@ namespace SoccerBet.Controllers
             }*/
         }
 
+        private async Task<User> GetCurrentUser()
+        {
+            return await _userManager.GetUserAsync(User);
+        }
     }
 }

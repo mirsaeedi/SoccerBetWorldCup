@@ -14,7 +14,6 @@ namespace SoccerBet.Data
         public DbSet<BonusPrediction> BonusPredictions { get; set; }
         public DbSet<BetGroupBonusPredictionRule> BetGroupBonusPredictionRules { get; set; }
         public DbSet<BetGroupMatchPredictionRule> BetGroupMatchPredictionRules { get; set; }
-        public DbSet<TeamWorldCupGroup> TeamWorldCupGroups { get; set; }
         public DbSet<Stadium> Stadiums { get; set; }
         public DbSet<WorldCupGroup> WorldCupGroups { get; set; }
         public DbSet<MatchPrediction> MatchPredictions { get; set; }

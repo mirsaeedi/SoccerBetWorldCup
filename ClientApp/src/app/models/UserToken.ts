@@ -4,5 +4,5 @@ export class UserToken {
   Email: string;
   PhoneNumber: string;
   ImageUrl: string;
-
+  BetGroupId: string;
 }

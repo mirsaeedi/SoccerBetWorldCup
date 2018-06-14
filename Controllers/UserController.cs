@@ -22,7 +22,6 @@ namespace SoccerBet.Controllers
     {
         private readonly UserManager<User> _userManager;
         private readonly SoccerBetDbContext _dbContext;
-        private User _currentUser;
 
         public UserController(SoccerBetDbContext dbContext, UserManager<User> userManager)
         {
@@ -31,42 +30,18 @@ namespace SoccerBet.Controllers
         }
 
         [HttpGet("me/matches")]
-        public async Task<IActionResult> GetMyPredictions(GetMyPredictionsQuery query)
+        public async Task<IActionResult> GetMyMatchPredictions(GetMyMatchPredictionsQuery query)
         {
-            var user = await _userManager.GetUserAsync(User);
-
-            var userBetGroup = await _dbContext.UserBetGroups
-                .SingleAsync(q => q.BetGroupId == query.BetGroupId && q.UserId == user.Id);
-
-            var matchRules = await _dbContext
-                .BetGroupMatchPredictionRules
-                .Where(q => q.BetGroupId == query.BetGroupId)
-                .ToArrayAsync();
-
-            var bonusRules = await _dbContext
-                .BetGroupBonusPredictionRules
-                .Where(q => q.BetGroupId == userBetGroup.Id)
-                .ToArrayAsync();
-
-            var scoreCalculator = new ScoreCalculator(matchRules, bonusRules);
-
-            var matches = await _dbContext.Matches
-                .Include(m => m.HomeTeamScore.Team.TeamWorldCupGroups)
-                .ThenInclude(m => m.WorldCupGroup)
-                .Include(m => m.AwayTeamScore.Team)
-                .Include(m => m.Stadium)
-                .ToArrayAsync();
-
-            var predictions = await _dbContext.MatchPredictions
-                .Where(q => q.UserBetGroup.Id == userBetGroup.Id)
-                .Include(m => m.HomeTeamScore.Team)
-                .Include(m => m.AwayTeamScore.Team)
-                .ToDictionaryAsync(q => q.MatchId);
+            var userBetGroup = await GetCurrentUserBetGroup(query.BetGroupId);
+            var scoreCalculator= await GetScoreCalculator(query.BetGroupId);
+            var matches = await GetAllWorldCupMatches();
+            var userMatchPredictions = (await GetUserMatchPredictions(userBetGroup.Id))
+                .ToDictionary(q => q.MatchId);
 
             var result = matches.Select(match => new
             {
                 match.Id,
-                WorldCupGroupName = match.HomeTeamScore.Team.TeamWorldCupGroups.First().WorldCupGroup.Name,
+                WorldCupGroupName = match.HomeTeamScore.Team.WorldCupGroup.Name,
                 HomeTeamName = match.HomeTeamScore.Team.Name,
                 AwayTeamName = match.AwayTeamScore.Team.Name,
                 HomeTeamFlagUrl = match.HomeTeamScore.Team.FlagUrl,
@@ -77,50 +52,115 @@ namespace SoccerBet.Controllers
                 AwayTeamResult = match.AwayTeamScore.MatchResult,
                 HomeTeamPenaltyResult = match.HomeTeamScore.PenaltyResult,
                 AwayTeamPenaltyResult = match.AwayTeamScore.PenaltyResult,
-                HomeTeamPredictionResult = predictions.ContainsKey(match.Id) ? predictions[match.Id]?.HomeTeamScore.MatchResult : null,
-                AwayTeamPredictionResult = predictions.ContainsKey(match.Id) ? predictions[match.Id]?.AwayTeamScore.MatchResult : null,
-                HomeTeamPredictionPenaltyResult = predictions.ContainsKey(match.Id) ? predictions[match.Id]?.HomeTeamScore?.PenaltyResult : null,
-                AwayTeamPredictionPenaltyResult = predictions.ContainsKey(match.Id) ? predictions[match.Id]?.AwayTeamScore?.PenaltyResult : null,
+                HomeTeamPredictionResult = userMatchPredictions.ContainsKey(match.Id) ? userMatchPredictions[match.Id]?.HomeTeamScore.MatchResult : null,
+                AwayTeamPredictionResult = userMatchPredictions.ContainsKey(match.Id) ? userMatchPredictions[match.Id]?.AwayTeamScore.MatchResult : null,
+                HomeTeamPredictionPenaltyResult = userMatchPredictions.ContainsKey(match.Id) ? userMatchPredictions[match.Id]?.HomeTeamScore?.PenaltyResult : null,
+                AwayTeamPredictionPenaltyResult = userMatchPredictions.ContainsKey(match.Id) ? userMatchPredictions[match.Id]?.AwayTeamScore?.PenaltyResult : null,
                 CityName = match.Stadium.City,
                 StadiumName = match.Stadium.Name,
                 StadiumImageUrl = match.Stadium.Image,
                 MatchDateTime = match.DateTime,
                 match.MatchHasStarted,
                 match.MatchType,
-                Score = scoreCalculator.CalculateMatchScore(match, predictions.ContainsKey(match.Id) ? predictions[match.Id] : null)
+                Score = scoreCalculator.CalculateMatchScore(match, userMatchPredictions.ContainsKey(match.Id) ? userMatchPredictions[match.Id] : null)
                 .score
             }).ToArray();
 
             return Ok(result);
         }
 
+        private async Task<MatchPrediction[]> GetUserMatchPredictions(long userBetGroupId)
+        {
+            var matchPredictions = await _dbContext.MatchPredictions
+                            .Where(q => q.UserBetGroup.Id == userBetGroupId)
+                            .Include(m => m.HomeTeamScore.Team)
+                            .Include(m => m.AwayTeamScore.Team)
+                            .ToArrayAsync();
+
+            return matchPredictions;
+        }
+
+        private async Task<Match[]> GetAllWorldCupMatches()
+        {
+            return await _dbContext.Matches
+                .Include(m => m.HomeTeamScore.Team.WorldCupGroup)
+                .Include(m => m.AwayTeamScore.Team.WorldCupGroup)
+                .Include(m => m.Stadium)
+                .ToArrayAsync();
+        }
+
+        private async Task<ScoreCalculator> GetScoreCalculator(long betGroupId)
+        {
+            var matchRules = await _dbContext
+                .BetGroupMatchPredictionRules
+                .Where(q => q.BetGroupId == betGroupId)
+                .ToArrayAsync();
+
+            var bonusRules = await _dbContext
+                .BetGroupBonusPredictionRules
+                .Where(q => q.BetGroupId == betGroupId)
+                .ToArrayAsync();
+
+            var scoreCalculator = new ScoreCalculator(matchRules, bonusRules);
+
+            return scoreCalculator;
+        }
+
+        private async Task<UserBetGroup> GetCurrentUserBetGroup(long betGroupId)
+        {
+            var user = await GetCurrentUser();
+
+            var userBetGroup = await _dbContext.UserBetGroups
+                .SingleAsync(q => q.BetGroupId == betGroupId && q.UserId == user.Id);
+
+            return userBetGroup;
+        }
+
+        private async Task<User> GetCurrentUser()
+        {
+            return await _userManager.GetUserAsync(User); 
+        }
+
         [HttpPost("join")]
-        [Authorize]
         public async Task<IActionResult> JoinBetGroup([FromBody] JoinBetGroupCommand command)
         {
-            _currentUser = _userManager.GetUserAsync(User).Result;
-            var betGroup = await _dbContext.BetGroups.SingleOrDefaultAsync(q => q.GroupCode == command.GroupCode);
+            var user = await GetCurrentUser();
+
+            var betGroup = await _dbContext
+                .BetGroups
+                .SingleOrDefaultAsync(q => q.GroupCode == command.GroupCode);
 
             if (betGroup == null)
             {
-                return null;
+                return NotFound();
             }
 
-            var existingBetUserGroup = await _dbContext.UserBetGroups.
-                SingleOrDefaultAsync(q => q.BetGroupId == betGroup.Id && q.UserId == _currentUser.Id);
+            var existingBetUserGroup = await _dbContext
+                .UserBetGroups.
+                SingleOrDefaultAsync(q => q.BetGroupId == betGroup.Id && q.UserId == user.Id);
 
             if (existingBetUserGroup != null)
             {
-                return null;
+                return Ok(new { betGroup.Name, betGroup.Id });
             }
 
             var newBetUserGroup = new UserBetGroup()
             {
                 BetGroupId = betGroup.Id,
-                UserId = _currentUser.Id
+                UserId = user.Id
             };
+
             _dbContext.Add(newBetUserGroup);
 
+            await AddEmptyBonusPredictionsForUser(newBetUserGroup);
+
+            await _dbContext.SaveChangesAsync();
+
+            return Ok(new { betGroup.Name, betGroup.Id });
+        }
+
+        private async Task AddEmptyBonusPredictionsForUser(UserBetGroup newBetUserGroup)
+        {
             var groups = await _dbContext.WorldCupGroups.ToArrayAsync();
             foreach (var group in groups)
             {
@@ -161,19 +201,15 @@ namespace SoccerBet.Controllers
                 UserBetGroup = newBetUserGroup,
             };
             _dbContext.Add(thirdTeamInWorldCupBonusPrediction);
-
-            await _dbContext.SaveChangesAsync();
-
-            return Ok(new { betGroup.Name, betGroup.Id });
         }
 
         [HttpGet("me/bet-groups")]
         public async Task<IActionResult> GetMyBetGroups()
         {
-            _currentUser = _userManager.GetUserAsync(User).Result;
+            var user = await GetCurrentUser();
 
             var myBetGroups = await _dbContext.UserBetGroups
-                .Where(q => q.UserId == _currentUser.Id)
+                .Where(q => q.UserId == user.Id)
                 .Select(m => m.BetGroup)
                 .ToArrayAsync();
 
@@ -181,24 +217,18 @@ namespace SoccerBet.Controllers
         }
 
         [HttpPost("match/{matchId}/prediction")]
-        public async Task<IActionResult> GetMyBetGroups([FromBody] MatchPredictionCommand command)
+        public async Task<IActionResult> PredictMatch([FromBody] MatchPredictionCommand command)
         {
-            _currentUser = _userManager.GetUserAsync(User).Result;
+            var userBetGroup = await GetCurrentUserBetGroup(command.BetGroupId);
+            var match = await GetMatchWithId(command.MatchId);
 
-            var match = await _dbContext
-                .Matches
-                .SingleOrDefaultAsync(q => q.Id == command.MatchId);
-
-            if (match.DateTime < DateTime.Now)
+            if (match.DateTime.LocalDateTime < DateTime.Now)
             {
-                return BadRequest();
+                return Unauthorized();
             }
 
-            var userBetGroup = await _dbContext.UserBetGroups
-                .SingleAsync(q => q.BetGroupId == command.BetGroupId && q.UserId == _currentUser.Id);
-
-            var prediction = _dbContext.MatchPredictions
-                .SingleOrDefault(q => q.MatchId == command.MatchId && q.UserBetGroupId == userBetGroup.Id);
+            var prediction = await _dbContext.MatchPredictions
+                .SingleOrDefaultAsync(q => q.MatchId == command.MatchId && q.UserBetGroupId == userBetGroup.Id);
 
             if (prediction == null)
             {
@@ -253,16 +283,19 @@ namespace SoccerBet.Controllers
             return Ok();
         }
 
+        private async Task<Match> GetMatchWithId(long matchId)
+        {
+            return await _dbContext
+                .Matches
+                .SingleOrDefaultAsync(q => q.Id == matchId);
+        }
+
         [HttpGet("match/{matchId}/predictions")]
         public async Task<IActionResult> GetMatchPredictions(GetMatchPredictionQuery query)
         {
-            _currentUser = _userManager.GetUserAsync(User).Result;
+            var match = await GetMatchWithId(query.MatchId);
 
-            var match = await _dbContext
-                .Matches
-                .SingleOrDefaultAsync(q => q.Id == query.MatchId);
-
-            if (match.DateTime > DateTime.Now)
+            if (match.DateTime.LocalDateTime > DateTime.Now)
             {
                 return BadRequest();
             }
@@ -290,10 +323,7 @@ namespace SoccerBet.Controllers
         [HttpGet("bonus-predictions")]
         public async Task<IActionResult> GetBonusPredictions(GetBonusPredictionQuery query)
         {
-            _currentUser = _userManager.GetUserAsync(User).Result;
-
-            var userBetGroup = await _dbContext.UserBetGroups
-                .SingleAsync(q => q.BetGroupId == query.BetGroupId && q.UserId == _currentUser.Id);
+            var userBetGroup = await GetCurrentUserBetGroup(query.BetGroupId);
 
             var bonusPredictions = await _dbContext.BonusPredictions
 
@@ -311,37 +341,159 @@ namespace SoccerBet.Controllers
             return Ok(bonusPredictions);
         }
 
+        [HttpGet("bonus-predictions/scores")]
+        public async Task<IActionResult> GetBonusPredictionsScores(GetBonusPredictionQuery query)
+        {
+            var result = new List<BonusPredictionsScoreQueryResult>();
+
+            var userBetGroup = await GetCurrentUserBetGroup(query.BetGroupId);
+
+            var bonusPredictions = await _dbContext.BonusPredictions
+                .Where(q => q.UserBetGroupId == userBetGroup.Id)
+                .Select(m => new
+                {
+                    m.TeamId,
+                    m.WorldCupGroupId,
+                    WorldCupGroupName = m.WorldCupGroup.Name,
+                    m.Id,
+                    m.BonusPredictionType
+                })
+                .ToArrayAsync();
+
+            var groups = await _dbContext.WorldCupGroups.ToArrayAsync();
+            var scoreCalculator = new ScoreCalculator(null, null);
+
+            foreach (var group in groups)
+            {
+                var groupPredictions = bonusPredictions
+                    .Where(q => q.WorldCupGroupId == group.Id)
+                    .ToArray();
+
+                var winner = groupPredictions
+                    .Single(q => q.BonusPredictionType == BonusPredictionType.FirstTeamInGroup).TeamId;
+
+                var runnerup = groupPredictions
+                    .Single(q => q.BonusPredictionType == BonusPredictionType.SecondTeamInGroup).TeamId;
+
+                var groupMatches = await GetGroupMatches(group.Id);
+
+                var score= scoreCalculator
+                    .CalculateBonusScoreForGroup(winner,runnerup, groupMatches);
+
+                var record = new BonusPredictionsScoreQueryResult()
+                {
+                    Score = score,
+                    BonusType=group.Name
+                };
+
+                result.Add(record);
+
+            }
+
+            var match = await _dbContext
+                .Matches
+                .SingleOrDefaultAsync(q => q.MatchType == MatchType.Final);
+
+            var stat = new BonusPredictionsScoreQueryResult()
+            {
+                Score = scoreCalculator.CalculateBonusScoreForTopNotch
+                (
+                    bonusPredictions.Single(q => q.BonusPredictionType == BonusPredictionType.FirstTeamInWorldCup).TeamId,
+                    match, BonusPredictionType.FirstTeamInWorldCup),
+                    BonusType = BonusPredictionType.FirstTeamInWorldCup.ToString()
+            };
+
+            result.Add(stat);
+
+
+            stat = new BonusPredictionsScoreQueryResult()
+            {
+                Score = scoreCalculator.CalculateBonusScoreForTopNotch
+                (
+                    bonusPredictions.Single(q => q.BonusPredictionType == BonusPredictionType.SecondTeamInWorldCup).TeamId,
+                    match, BonusPredictionType.SecondTeamInWorldCup),
+                    BonusType = BonusPredictionType.SecondTeamInWorldCup.ToString()
+            };
+
+            result.Add(stat);
+
+            match = await _dbContext
+                .Matches
+                .SingleOrDefaultAsync(q => q.MatchType == MatchType.ThirdPlacePlayOff);
+
+            stat = new BonusPredictionsScoreQueryResult()
+            {
+                Score = scoreCalculator.CalculateBonusScoreForTopNotch
+                (
+                    bonusPredictions.Single(q => q.BonusPredictionType == BonusPredictionType.ThirdTeamInWorldCup).TeamId,
+                    match, BonusPredictionType.ThirdTeamInWorldCup),
+                BonusType = BonusPredictionType.ThirdTeamInWorldCup.ToString()
+            };
+
+            result.Add(stat);
+
+            return Ok(result);
+        }
+
         [HttpPost("bonus-predictions/{bonusPredictionId}")]
         public async Task<IActionResult> SaveBonusPrediction([FromBody] SaveBonusPredictionCommand command)
         {
             var bonusPrediction = await _dbContext.BonusPredictions
                 .SingleOrDefaultAsync(q => q.Id == command.BonusPredictionId);
 
-            if (bonusPrediction.BonusPredictionType == BonusPredictionType.ThirdTeamInWorldCup
-                || bonusPrediction.BonusPredictionType == BonusPredictionType.SecondTeamInWorldCup
-                || bonusPrediction.BonusPredictionType == BonusPredictionType.FirstTeamInWorldCup)
+            if (bonusPrediction.WorldCupGroupId != null)
             {
-                var isAnotherPredictionWithThisTeam = await _dbContext
-                    .BonusPredictions
-                    .AnyAsync(q => q.UserBetGroupId == bonusPrediction.UserBetGroupId
-                    && q.TeamId == command.TeamId
-                    && (q.BonusPredictionType == BonusPredictionType.FirstTeamInWorldCup
-                    || q.BonusPredictionType == BonusPredictionType.SecondTeamInWorldCup
-                    || q.BonusPredictionType == BonusPredictionType.ThirdTeamInWorldCup));
+                var deadlineForSubmit =await _dbContext
+                    .Matches
+                    .Where(q=>q.MatchType==MatchType.Group)
+                    .MinAsync(q=>q.DateTime);
 
-                if (isAnotherPredictionWithThisTeam)
-                    return BadRequest();
+                if (DateTime.Now > deadlineForSubmit.LocalDateTime)
+                    return Unauthorized();
             }
             else
             {
-                var isAnotherPredictionWithThisTeam = await _dbContext
-                   .BonusPredictions
-                   .AnyAsync(q => q.UserBetGroupId == bonusPrediction.UserBetGroupId
-                   && q.TeamId == command.TeamId
-                   && (q.WorldCupGroupId==bonusPrediction.WorldCupGroupId));
+                var firstMatch = (await _dbContext
+                                    .Matches
+                                    .Where(q => q.MatchType == MatchType.RoundOf16)
+                                    .OrderBy(q => q.DateTime)
+                                    .FirstOrDefaultAsync());
 
-                if (isAnotherPredictionWithThisTeam)
-                    return BadRequest();
+
+
+                if (firstMatch!=null && DateTime.Now > firstMatch.DateTime.LocalDateTime)
+                    return Unauthorized();
+            }
+
+            if (command.TeamId != null)
+            {
+
+                if (bonusPrediction.BonusPredictionType == BonusPredictionType.ThirdTeamInWorldCup
+                    || bonusPrediction.BonusPredictionType == BonusPredictionType.SecondTeamInWorldCup
+                    || bonusPrediction.BonusPredictionType == BonusPredictionType.FirstTeamInWorldCup)
+                {
+                    var isAnotherPredictionWithThisTeam = await _dbContext
+                        .BonusPredictions
+                        .AnyAsync(q => q.UserBetGroupId == bonusPrediction.UserBetGroupId
+                        && q.TeamId == command.TeamId
+                        && (q.BonusPredictionType == BonusPredictionType.FirstTeamInWorldCup
+                        || q.BonusPredictionType == BonusPredictionType.SecondTeamInWorldCup
+                        || q.BonusPredictionType == BonusPredictionType.ThirdTeamInWorldCup));
+
+                    if (isAnotherPredictionWithThisTeam)
+                        return BadRequest();
+                }
+                else
+                {
+                    var isAnotherPredictionWithThisTeam = await _dbContext
+                       .BonusPredictions
+                       .AnyAsync(q => q.UserBetGroupId == bonusPrediction.UserBetGroupId
+                       && q.TeamId == command.TeamId
+                       && (q.WorldCupGroupId == bonusPrediction.WorldCupGroupId));
+
+                    if (isAnotherPredictionWithThisTeam)
+                        return BadRequest();
+                }
             }
 
             bonusPrediction.TeamId = command.TeamId;
@@ -354,12 +506,12 @@ namespace SoccerBet.Controllers
         public async Task<IActionResult> GetTeams()
         {
             var teams = await _dbContext.
-                TeamWorldCupGroups
+                Teams
                 .Select(m => new
                 {
-                    m.TeamId,
+                    m.Id,
                     m.WorldCupGroupId,
-                    TeamName = m.Team.Name,
+                    TeamName = m.Name,
                     WorldCupGroupName = m.WorldCupGroup.Name
                 })
                 .ToArrayAsync();
@@ -370,23 +522,11 @@ namespace SoccerBet.Controllers
         [HttpGet("match/{matchId}/stats")]
         public async Task<IActionResult> GetMatchStats(GetMatchStatsQuery query)
         {
-            var matchRules = await _dbContext
-                .BetGroupMatchPredictionRules
-                .Where(q => q.BetGroupId == query.BetGroupId)
-                .ToArrayAsync();
+            var scoreCalculator = await GetScoreCalculator(query.BetGroupId);
+            var matchPredictions = await GetMatchPredictions(query.MatchId,query.BetGroupId);
+            var match = await GetMatchWithId(query.MatchId);
 
-            var scoreCalculator = new ScoreCalculator(matchRules, null);
-
-            var predictions = await _dbContext.MatchPredictions
-                .Include(q => q.HomeTeamScore.Team)
-                .Include(q => q.AwayTeamScore.Team)
-                .Include(q => q.UserBetGroup.User)
-                .Where(q => q.MatchId == query.MatchId && q.UserBetGroup.BetGroupId == query.BetGroupId)
-                .ToArrayAsync();
-
-            var match = await _dbContext.Matches.SingleAsync(q => q.Id == query.MatchId);
-
-            var result = predictions.Select(m => new
+            var result = matchPredictions.Select(m => new
             {
                 UserImageUrl = m.UserBetGroup.User.ImageUrl,
                 UserName = m.UserBetGroup.User.Name,
@@ -402,31 +542,22 @@ namespace SoccerBet.Controllers
             return Ok(result);
         }
 
+        private async Task<MatchPrediction[]> GetMatchPredictions(long matchId, long betGroupId)
+        {
+            return await _dbContext.MatchPredictions
+                .Include(q => q.HomeTeamScore.Team)
+                .Include(q => q.AwayTeamScore.Team)
+                .Include(q => q.UserBetGroup.User)
+                .Where(q => q.MatchId == matchId && q.UserBetGroup.BetGroupId == betGroupId)
+                .ToArrayAsync();
+        }
+
         [HttpGet("ranks")]
         public async Task<IActionResult> GetUserRanks(GetUserRanksQuery query)
         {
-            var matchRules = await _dbContext
-                .BetGroupMatchPredictionRules
-                .Where(q => q.BetGroupId == query.BetGroupId)
-                .ToArrayAsync();
-
-            var bonusRules = await _dbContext
-                .BetGroupBonusPredictionRules
-                .Where(q => q.BetGroupId == query.BetGroupId)
-                .ToArrayAsync();
-
-            var scoreCalculator = new ScoreCalculator(matchRules, bonusRules);
-
-            var usersOfBetGroup = await _dbContext.UserBetGroups
-                .Where(q => q.BetGroupId == query.BetGroupId)
-                .Select(m => m.User)
-                .ToArrayAsync();
-
-            var matches = await _dbContext
-                .Matches
-                .Include(q=>q.AwayTeamScore.Team)
-                .Include(q => q.HomeTeamScore.Team)
-                .ToArrayAsync();
+            var scoreCalculator = await GetScoreCalculator(query.BetGroupId);
+            var usersOfBetGroup = await GetMembersOfBetGroup(query.BetGroupId);
+            var matches = await GetAllWorldCupMatches();
 
             var result = new List<UserRankQueryResult>();
 
@@ -436,64 +567,55 @@ namespace SoccerBet.Controllers
                     .UserBetGroups
                     .SingleAsync(q => q.BetGroupId == query.BetGroupId && q.UserId == user.Id);
 
-                var userMatchPredictions =await _dbContext
-                    .MatchPredictions
-                    .Where(q => q.UserBetGroupId == userBetGroup.Id)
-                    .ToArrayAsync();
+                var userMatchPredictions = await GetUserMatchPredictions(userBetGroup.Id);
 
-                var userBonusPredictions = await _dbContext
-                    .BonusPredictions
-                    .Where(q => q.UserBetGroupId == userBetGroup.Id)
-                    .ToArrayAsync();
+                var userBonusPredictions = await GetUserBonusPredictions(userBetGroup.Id);
 
-                var userPredictionResult = scoreCalculator
-                    .CalculateScoreForUser
-                    (user,matches, userMatchPredictions,userBonusPredictions);
+                var userMatchPredictionScore = scoreCalculator
+                    .CalculateTotalMatchPredictionScoreForUser(user, matches, userMatchPredictions);
+
+                var userBonusPredictionScore = scoreCalculator
+                    .CalculateTotalBonusPredictionScoreForUser(user, matches, userBonusPredictions);
 
                 result.Add(new UserRankQueryResult()
                 {
                     UserName = user.Name,
                     UserImageUrl = user.ImageUrl,
-                    MatchScore = userPredictionResult.Sum(q=>q.Score),
-                    BonusScore=0,
-                    CorrectPredictions=userPredictionResult.Count(q=>q.MatchPredictionType==MatchPredictionType.Exact),
-                    GoalDifferencePredictions = userPredictionResult.Count(q => q.MatchPredictionType == MatchPredictionType.GoalDifference),
-                    MatchWinnerPredictions = userPredictionResult.Count(q => q.MatchPredictionType == MatchPredictionType.MatchWinner),
-                    WrongPredictions = userPredictionResult.Count(q => q.MatchPredictionType == MatchPredictionType.Wrong)
+                    MatchScore = userMatchPredictionScore.Sum(q => q.Score),
+                    BonusScore = userBonusPredictionScore,
+                    CorrectPredictions = userMatchPredictionScore.Count(q => q.MatchPredictionType == MatchPredictionType.Exact),
+                    GoalDifferencePredictions = userMatchPredictionScore.Count(q => q.MatchPredictionType == MatchPredictionType.GoalDifference),
+                    MatchWinnerPredictions = userMatchPredictionScore.Count(q => q.MatchPredictionType == MatchPredictionType.MatchWinner),
+                    WrongPredictions = userMatchPredictionScore.Count(q => q.MatchPredictionType == MatchPredictionType.Wrong)
                 });
 
             }
 
-            return Ok(result
-                .OrderByDescending(q => q.MatchScore).ToArray());
+            return Ok(result.OrderByDescending(q => q.TotalScore));
         }
 
+        private async Task<BonusPrediction[]> GetUserBonusPredictions(long userBetGroupId)
+        {
+            return await _dbContext
+                   .BonusPredictions
+                   .Where(q => q.UserBetGroupId == userBetGroupId)
+                   .ToArrayAsync();
+        }
+
+        private async Task<User[]> GetMembersOfBetGroup(long betGroupId)
+        {
+            return await _dbContext.UserBetGroups
+                .Where(q => q.BetGroupId == betGroupId)
+                .Select(m => m.User)
+                .ToArrayAsync();
+        }
 
         [HttpGet("me/status")]
         public async Task<IActionResult> GetUserStatus(GetUserStatusQuery query)
         {
-            var matchRules = await _dbContext
-                .BetGroupMatchPredictionRules
-                .Where(q => q.BetGroupId == query.BetGroupId)
-                .ToArrayAsync();
-
-            var bonusRules = await _dbContext
-                .BetGroupBonusPredictionRules
-                .Where(q => q.BetGroupId == query.BetGroupId)
-                .ToArrayAsync();
-
-            var scoreCalculator = new ScoreCalculator(matchRules, bonusRules);
-
-            var usersOfBetGroup = await _dbContext.UserBetGroups
-                .Where(q => q.BetGroupId == query.BetGroupId)
-                .Select(m => m.User)
-                .ToArrayAsync();
-
-            var matches = await _dbContext
-                .Matches
-                .Include(q => q.AwayTeamScore.Team)
-                .Include(q => q.HomeTeamScore.Team)
-                .ToArrayAsync();
+            var scoreCalculator = await GetScoreCalculator(query.BetGroupId);
+            var usersOfBetGroup = await GetMembersOfBetGroup(query.BetGroupId);
+            var matches = await GetAllWorldCupMatches();
 
             var result = new List<UserRankQueryResult>();
 
@@ -503,39 +625,35 @@ namespace SoccerBet.Controllers
                     .UserBetGroups
                     .SingleAsync(q => q.BetGroupId == query.BetGroupId && q.UserId == user.Id);
 
-                var userMatchPredictions = await _dbContext
-                    .MatchPredictions
-                    .Where(q => q.UserBetGroupId == userBetGroup.Id)
-                    .ToArrayAsync();
+                var userMatchPredictions = await GetUserMatchPredictions(userBetGroup.Id);
 
-                var userBonusPredictions = await _dbContext
-                    .BonusPredictions
-                    .Where(q => q.UserBetGroupId == userBetGroup.Id)
-                    .ToArrayAsync();
+                var userBonusPredictions = await GetUserBonusPredictions(userBetGroup.Id);
 
-                var userPredictionResult = scoreCalculator
-                    .CalculateScoreForUser
-                    (user, matches, userMatchPredictions, userBonusPredictions);
+                var userMatchPredictionScore = scoreCalculator
+                    .CalculateTotalMatchPredictionScoreForUser(user, matches, userMatchPredictions);
+
+                var userBonusPredictionScore = scoreCalculator
+                    .CalculateTotalBonusPredictionScoreForUser(user, matches, userBonusPredictions);
 
                 result.Add(new UserRankQueryResult()
                 {
                     UserId=user.Id,
                     UserName = user.Name,
                     UserImageUrl = user.ImageUrl,
-                    MatchScore = userPredictionResult.Sum(q => q.Score),
-                    BonusScore = 0,
-                    CorrectPredictions = userPredictionResult.Count(q => q.MatchPredictionType == MatchPredictionType.Exact),
-                    GoalDifferencePredictions = userPredictionResult.Count(q => q.MatchPredictionType == MatchPredictionType.GoalDifference),
-                    MatchWinnerPredictions = userPredictionResult.Count(q => q.MatchPredictionType == MatchPredictionType.MatchWinner),
-                    WrongPredictions = userPredictionResult.Count(q => q.MatchPredictionType == MatchPredictionType.Wrong)
+                    MatchScore = userMatchPredictionScore.Sum(q => q.Score),
+                    BonusScore = userBonusPredictionScore,
+                    CorrectPredictions = userMatchPredictionScore.Count(q => q.MatchPredictionType == MatchPredictionType.Exact),
+                    GoalDifferencePredictions = userMatchPredictionScore.Count(q => q.MatchPredictionType == MatchPredictionType.GoalDifference),
+                    MatchWinnerPredictions = userMatchPredictionScore.Count(q => q.MatchPredictionType == MatchPredictionType.MatchWinner),
+                    WrongPredictions = userMatchPredictionScore.Count(q => q.MatchPredictionType == MatchPredictionType.Wrong)
                 });
 
             }
 
-            var currentUser = await _userManager.GetUserAsync(User);
+            var currentUser = await GetCurrentUser();
 
             var sortedArray = result
-                .OrderByDescending(q=>q.MatchScore)
+                .OrderByDescending(q => q.TotalScore)
                 .ToArray();
 
             var userRank = Array.FindIndex(sortedArray, q => q.UserId == currentUser.Id);
@@ -553,5 +671,138 @@ namespace SoccerBet.Controllers
 
             return Ok(userStatusResult);
         }
-    }
+
+        [HttpGet("bonus-predictions/groups/{groupName}")]
+        public async Task<IActionResult> GetBonusPredictionForGroup(GetBonusPredictionForGroupQuery query)
+        {
+
+            var deadlineForSubmit = await _dbContext
+                    .Matches
+                    .Where(q => q.MatchType == MatchType.Group)
+                    .MinAsync(q => q.DateTime);
+
+            if (DateTime.Now < deadlineForSubmit.LocalDateTime)
+                return Unauthorized();
+
+            var userBetGroup = await GetCurrentUserBetGroup(query.BetGroupId);
+            var scoreCalculator = await GetScoreCalculator(query.BetGroupId);
+            var group = await GetGroupByName(query.GroupName);
+            var groupMatches = await GetGroupMatches(group.Id);
+            var allBonusPredictionsForGroup = await GetBonusPredictionsForGroup(group.Id, query.BetGroupId);
+
+            var result = new List<GroupBonusPredictionStatQueryResult>();
+
+            foreach (var userPredictionsForUser in allBonusPredictionsForGroup.GroupBy(q => q.UserBetGroupId))
+            {
+                var winnerTeamPrediction = userPredictionsForUser
+                    .Single(q => q.BonusPredictionType == BonusPredictionType.FirstTeamInGroup);
+
+                var runnerupTeamPrediction = userPredictionsForUser
+                    .Single(q => q.BonusPredictionType == BonusPredictionType.SecondTeamInGroup);
+
+                var score = scoreCalculator
+                    .CalculateBonusScoreForGroup
+                    (winnerTeamPrediction.TeamId, runnerupTeamPrediction.TeamId, groupMatches);
+
+                var record = new GroupBonusPredictionStatQueryResult()
+                {
+                    UserName = winnerTeamPrediction.UserBetGroup.User.Name,
+                    UserImageUrl = winnerTeamPrediction.UserBetGroup.User.ImageUrl,
+                    FirstTeamName = winnerTeamPrediction.Team?.Name,
+                    SecondTeamName = runnerupTeamPrediction.Team?.Name,
+                    Score=score
+                };
+
+                result.Add(record);
+            }
+
+            return Ok(result);   
+        }
+
+        private async Task<BonusPrediction[]> GetBonusPredictionsForGroup(long groupId, long betGroupId)
+        {
+            return await _dbContext.BonusPredictions
+                .Where(q => q.WorldCupGroup.Id == groupId
+                && q.UserBetGroup.BetGroupId == betGroupId)
+                .Include(m => m.UserBetGroup.User)
+                .Include(m => m.Team)
+                .ToArrayAsync();
+        }
+
+        private async Task<WorldCupGroup> GetGroupByName(string groupName)
+        {
+            return await _dbContext
+                .WorldCupGroups
+                .SingleAsync(q => q.Name == groupName);
+        }
+
+        private async Task<Match[]> GetGroupMatches(long groupId)
+        {
+            return await _dbContext.Matches
+               .Where(q => q.MatchType == MatchType.Group
+               && q.HomeTeamScore.Team.WorldCupGroup.Id == groupId)
+               .ToArrayAsync();
+        }
+
+        [HttpGet("bonus-predictions/top-notchs/{predictionType}")]
+        public async Task<IActionResult> GetBonusPredictionForTopNotch(GetBonusPredictionForTopNotchQuery query)
+        {
+            var firstMatch = await _dbContext
+                                    .Matches
+                                    .Where(q => q.MatchType == MatchType.RoundOf16)
+                                    .OrderBy(q => q.DateTime)
+                                    .FirstOrDefaultAsync();
+
+            if (firstMatch == null || (DateTime.Now < firstMatch.DateTime.LocalDateTime))
+                return Unauthorized();
+
+            var userBetGroup = await GetCurrentUserBetGroup(query.BetGroupId);
+            var scoreCalculator = await GetScoreCalculator(query.BetGroupId);
+            var bonusPredictionsForPredictionType = await GetBonusPredictionsFor(query.BonusPredictionType, query.BetGroupId);
+            MatchType matchType = GetMatchTypeBasedOfPredictionType(query.BonusPredictionType);
+
+            var match = await _dbContext.Matches
+                .SingleOrDefaultAsync(q => q.MatchType == matchType);
+
+            var result = new List<GroupBonusPredictionStatQueryResult>();
+
+            foreach (var bonusPrediction in bonusPredictionsForPredictionType)
+            {
+               var score = scoreCalculator
+                    .CalculateBonusScoreForTopNotch(bonusPrediction.TeamId, match, query.BonusPredictionType);
+
+                var record = new GroupBonusPredictionStatQueryResult()
+                {
+                    UserName = bonusPrediction.UserBetGroup.User.UserName,
+                    UserImageUrl = bonusPrediction.UserBetGroup.User.ImageUrl,
+                    FirstTeamName = bonusPrediction.Team.Name,
+                    Score=score
+                };
+
+                result.Add(record);
+            }
+            return Ok(result);
+        }
+
+        private MatchType GetMatchTypeBasedOfPredictionType(BonusPredictionType bonusPredictionType)
+        {
+            if (bonusPredictionType == BonusPredictionType.FirstTeamInWorldCup)
+                return MatchType.Final;
+            if (bonusPredictionType == BonusPredictionType.SecondTeamInWorldCup)
+                return MatchType.Final;
+            if (bonusPredictionType == BonusPredictionType.ThirdTeamInWorldCup)
+               return MatchType.ThirdPlacePlayOff;
+
+            return MatchType.Group;
+        }
+
+        private async Task<BonusPrediction[]> GetBonusPredictionsFor(BonusPredictionType bonusPredictionType, long betGroupId)
+        {
+            return await _dbContext.BonusPredictions
+               .Where(q => q.BonusPredictionType == bonusPredictionType
+               && q.UserBetGroup.BetGroupId == betGroupId)
+               .Include(m=>m.UserBetGroup.User)
+               .Include(m => m.Team).ToArrayAsync();
+        }
+    } 
 }

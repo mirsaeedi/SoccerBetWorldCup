@@ -10,6 +10,7 @@ namespace SoccerBet.Data.Models
         public string Name { get; set; }
         public string FifaCode { get; set; }
         public string FlagUrl { get; set; }
-        public ICollection<TeamWorldCupGroup> TeamWorldCupGroups { get; set; }
+        public WorldCupGroup WorldCupGroup { get; set; }
+        public long? WorldCupGroupId { get; set; }
     }
 }

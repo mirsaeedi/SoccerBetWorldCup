@@ -70,8 +70,13 @@ export class UserSettingComponent implements OnInit{
       catchError(this.handleError)
     )
       .subscribe(group => {
-        this.newJoinedBetGroup = group;
-        this.open(this.newGroupSuccessModal);
+        this.authService.joinGroup(groupCode)
+          .subscribe(data => {
+            this.newJoinedBetGroup = group;
+            this.authService.setToken(data.Token);
+            this.open(this.newGroupSuccessModal);
+          })
+        
       });
 
   }

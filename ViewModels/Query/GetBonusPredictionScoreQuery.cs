@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace SoccerBet.ViewModels.Query
 {
-    public class GetMyMatchPredictionsQuery
+    public class GetBonusPredictionScoreQuery
     {
         public long BetGroupId { get; set; }
     }

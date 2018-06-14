@@ -3,15 +3,17 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SoccerBet.Data;
 
 namespace SoccerBet.Migrations
 {
     [DbContext(typeof(SoccerBetDbContext))]
-    partial class SoccerBetDbContextModelSnapshot : ModelSnapshot
+    [Migration("20180613190429_add_group_to_team")]
+    partial class add_group_to_team
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -296,13 +298,32 @@ namespace SoccerBet.Migrations
 
                     b.Property<string>("Name");
 
-                    b.Property<long?>("WorldCupGroupId");
+                    b.Property<long>("WorldCupGroupId");
 
                     b.HasKey("Id");
 
                     b.HasIndex("WorldCupGroupId");
 
                     b.ToTable("Teams");
+                });
+
+            modelBuilder.Entity("SoccerBet.Data.Models.TeamWorldCupGroup", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+
+                    b.Property<long>("TeamId");
+
+                    b.Property<long>("WorldCupGroupId");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TeamId");
+
+                    b.HasIndex("WorldCupGroupId");
+
+                    b.ToTable("TeamWorldCupGroups");
                 });
 
             modelBuilder.Entity("SoccerBet.Data.Models.User", b =>
@@ -607,7 +628,21 @@ namespace SoccerBet.Migrations
                 {
                     b.HasOne("SoccerBet.Data.Models.WorldCupGroup", "WorldCupGroup")
                         .WithMany()
-                        .HasForeignKey("WorldCupGroupId");
+                        .HasForeignKey("WorldCupGroupId")
+                        .OnDelete(DeleteBehavior.Cascade);
+                });
+
+            modelBuilder.Entity("SoccerBet.Data.Models.TeamWorldCupGroup", b =>
+                {
+                    b.HasOne("SoccerBet.Data.Models.Team", "Team")
+                        .WithMany()
+                        .HasForeignKey("TeamId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.HasOne("SoccerBet.Data.Models.WorldCupGroup", "WorldCupGroup")
+                        .WithMany()
+                        .HasForeignKey("WorldCupGroupId")
+                        .OnDelete(DeleteBehavior.Cascade);
                 });
 
             modelBuilder.Entity("SoccerBet.Data.Models.UserBetGroup", b =>

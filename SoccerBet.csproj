@@ -37,6 +37,8 @@
   <ItemGroup>
     <None Remove="ClientApp\src\app\models\BetGroup.ts" />
     <None Remove="ClientApp\src\app\models\BonusPrediction.ts" />
+    <None Remove="ClientApp\src\app\models\BonusScore.ts" />
+    <None Remove="ClientApp\src\app\models\GroupBonusPredictionStat.ts" />
     <None Remove="ClientApp\src\app\models\JwtToken.ts" />
     <None Remove="ClientApp\src\app\models\Match.ts" />
     <None Remove="ClientApp\src\app\models\MatchPrediction.ts" />
@@ -52,6 +54,8 @@
 
   <ItemGroup>
     <TypeScriptCompile Include="ClientApp\src\app\models\BonusPrediction.ts" />
+    <TypeScriptCompile Include="ClientApp\src\app\models\BonusScore.ts" />
+    <TypeScriptCompile Include="ClientApp\src\app\models\GroupBonusPredictionStat.ts" />
     <TypeScriptCompile Include="ClientApp\src\app\models\MatchStat.ts" />
     <TypeScriptCompile Include="ClientApp\src\app\models\Team.ts" />
     <TypeScriptCompile Include="ClientApp\src\app\models\BetGroup.ts" />
@@ -80,6 +84,10 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="2.1.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="2.1.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.AzureKeyVault" Version="2.1.0" />
+    <PackageReference Include="Serilog.AspNetCore" Version="2.1.1" />
+    <PackageReference Include="Serilog.Sinks.ApplicationInsights" Version="2.6.0" />
+    <PackageReference Include="Serilog.Sinks.Console" Version="3.1.1" />
+    <PackageReference Include="Serilog.Sinks.File" Version="4.0.0" />
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="5.2.2" />
   </ItemGroup>
 

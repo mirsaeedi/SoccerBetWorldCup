@@ -1,6 +1,6 @@
 export class Team {
 
-  TeamId: number;
+  Id: number;
   WorldCupGroupId: string;
   TeamName: string;
   WorldCupGroupName: string;
