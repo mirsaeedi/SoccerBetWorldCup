@@ -140,9 +140,11 @@ namespace SoccerBet.Controllers
                 new Claim(ClaimTypes.Name,user.Name),
                 new Claim(ClaimTypes.NameIdentifier, user.UserName),
                 new Claim("ImageUrl", user.ImageUrl??""),
-                new Claim("BetGroupId", betGroupId?.ToString()),
                 new Claim(ClaimTypes.MobilePhone, user.PhoneNumber??"")
             };
+
+            if (betGroupId != null)
+                claims.Add(new Claim("BetGroupId", betGroupId.ToString()));
 
             var issuerSigningKey = _jwtOptionConfiguration.Value.IssuerSigningKey;
             var creds = new SigningCredentials(issuerSigningKey, SecurityAlgorithms.HmacSha256);

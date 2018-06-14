@@ -35,17 +35,17 @@ export class HomeComponent implements OnInit{
   matches: Match[];
   closeResult: string;
 
-  bonusScoreGroupA: BonusScore;
-  bonusScoreGroupB: BonusScore;
-  bonusScoreGroupC: BonusScore;
-  bonusScoreGroupD: BonusScore;
-  bonusScoreGroupE: BonusScore;
-  bonusScoreGroupF: BonusScore;
-  bonusScoreGroupG: BonusScore;
-  bonusScoreGroupH: BonusScore;
-  bonusScoreGroupFirst: BonusScore;
-  bonusScoreGroupSecond: BonusScore;
-  bonusScoreGroupThird: BonusScore;
+  bonusScoreGroupA = new BonusScore();
+  bonusScoreGroupB = new BonusScore();
+  bonusScoreGroupC = new BonusScore();
+  bonusScoreGroupD = new BonusScore();
+  bonusScoreGroupE = new BonusScore();
+  bonusScoreGroupF = new BonusScore();
+  bonusScoreGroupG = new BonusScore();
+  bonusScoreGroupH = new BonusScore();
+  bonusScoreGroupFirst = new BonusScore();
+  bonusScoreGroupSecond = new BonusScore();
+  bonusScoreGroupThird = new BonusScore();
 
 
   firstTeamPrediction = new BonusPrediction();
