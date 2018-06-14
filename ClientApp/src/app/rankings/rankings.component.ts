@@ -32,4 +32,9 @@ export class RankingsComponent implements OnInit{
           this.userRanks = userRanks;
       });
   }
+
+  thisIsMe(userName: string): boolean {
+
+    return this.userToken.Name == userName;
+  }
 }

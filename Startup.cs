@@ -1,3 +1,5 @@
+using Hangfire;
+using Hangfire.Dashboard;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authentication.OAuth;
@@ -113,6 +115,8 @@ namespace SoccerBet
             {
                 configuration.RootPath = "ClientApp/dist";
             });
+
+            services.AddHangfire(x => x.UseSqlServerStorage(Configuration.GetConnectionString("HangfireConnectionString")));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -141,11 +145,14 @@ namespace SoccerBet
                     template: "{controller}/{action=Index}/{id?}");
             });
 
+            app.UseHangfireServer();
+            app.UseHangfireDashboard("/hangfire", new DashboardOptions
+            {
+                Authorization = new[] { new MyAuthorizationFilter() }
+            });
+
             app.UseSpa(spa =>
             {
-                // To learn more about options for serving an Angular SPA from ASP.NET Core,
-                // see https://go.microsoft.com/fwlink/?linkid=864501
-
                 spa.Options.SourcePath = "ClientApp";
 
                 if (env.IsDevelopment())
@@ -153,6 +160,18 @@ namespace SoccerBet
                     spa.UseProxyToSpaDevelopmentServer("http://localhost:4200");
                 }
             });
+
+            RecurringJob.AddOrUpdate<LiveScoreUpdaterJob>((job) => job.Run(), Cron.Minutely);
+        }
+    }
+    public class MyAuthorizationFilter : IDashboardAuthorizationFilter
+    {
+        public bool Authorize(DashboardContext context)
+        {
+            var httpContext = context.GetHttpContext();
+
+            // Allow all authenticated users to see the Dashboard (potentially dangerous).
+            return httpContext.User.Identity.IsAuthenticated;
         }
     }
 }

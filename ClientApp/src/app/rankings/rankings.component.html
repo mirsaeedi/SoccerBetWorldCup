@@ -22,7 +22,7 @@
               </tr>
             </thead>
             <tbody>
-              <tr *ngFor="let userRank of userRanks;index as i" class="table-success">
+              <tr *ngFor="let userRank of userRanks;index as i" [ngClass]="{'table-warning': thisIsMe(userRank.UserName), 'table-success': !thisIsMe(userRank.UserName)}">
                 <th class="align-middle" scope="row">{{i+1}}</th>
                 <td class="align-middle">
                   <img [src]="userRank.UserImageUrl" height="50" style="border-radius:50px" /><span class="ml-2">{{userRank.UserName}}</span>

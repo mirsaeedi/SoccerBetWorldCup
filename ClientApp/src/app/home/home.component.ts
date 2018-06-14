@@ -228,7 +228,7 @@ export class HomeComponent implements OnInit{
         this.matches = matches.sort((a, b) => a.MatchUTCDateTime.unix() - b.MatchUTCDateTime.unix());
 
         let firstGroupMatch = matches.filter(q => q.MatchType == 0)[0];
-        this.IsGroupPredicationEnabled = moment(firstGroupMatch.MatchDateTime).local() > moment(Date.now());
+        this.IsGroupPredicationEnabled = true;//moment(firstGroupMatch.MatchDateTime).local() > moment(Date.now());
 
         let firstRound16Match = matches.filter(q => q.MatchType == 1)[0];
         if (firstRound16Match != null)
@@ -326,6 +326,7 @@ export class HomeComponent implements OnInit{
 
     this.http.get<GroupBonusPredictionStat[]>(`/api/bonus-predictions/groups/${groupName}`, { params: { BetGroupId: this.currentUser.BetGroupId } })
       .subscribe(data => {
+        data = data.sort((a1, a2) => a2.Score - a1.Score);
         this.selectedGroupBonusPredictionStats = data;
         this.open(this.groupBonusPredictionMatchStatsModal, { size: 'lg' });
     });
@@ -389,8 +390,14 @@ export class HomeComponent implements OnInit{
       }
     }).subscribe(result => {
       this.selectedMatchStats = result;
+      result = result.sort((a1, a2) => a2.Score - a1.Score);
       this.open(this.matchStatsModal, { size: 'lg' });
     });
+  }
+
+  thisIsMe(userName: string): boolean {
+
+    return this.currentUser.Name == userName;
   }
 
 }

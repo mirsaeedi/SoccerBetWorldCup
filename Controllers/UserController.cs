@@ -441,7 +441,8 @@ namespace SoccerBet.Controllers
             var bonusPrediction = await _dbContext.BonusPredictions
                 .SingleOrDefaultAsync(q => q.Id == command.BonusPredictionId);
 
-            if (bonusPrediction.WorldCupGroupId != null)
+            if (bonusPrediction.WorldCupGroupId != null
+                && bonusPrediction.WorldCupGroupId == 9)
             {
                 var deadlineForSubmit =await _dbContext
                     .Matches

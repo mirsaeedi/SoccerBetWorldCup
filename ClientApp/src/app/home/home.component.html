@@ -2,7 +2,7 @@
 
   <div class="row text-center">
 
-    <div class="col-2">
+    <div class="col-6 col-md-2" >
       <div class="card rounded text-white bg-primary mb-3" style="border-radius: 200px!important; box-shadow: 0px 4px 34px 7px rgba(181,83,108,1);">
         <div class="card-header text-center">
           <div style="font-size:20px; color:yellow">
@@ -16,7 +16,7 @@
       </div>
     </div>
 
-    <div class="col-2">
+    <div class="col-6 col-md-2">
       <div class="card text-white bg-success mb-3" style="
     border-radius: 200px!important;
     box-shadow: 0px 4px 34px 7px rgba(181,83,108,1);">
@@ -32,7 +32,7 @@
       </div>
     </div>
 
-    <div class="col-2">
+    <div class="col-md-2 d-none d-md-block">
       <div class="card text-white bg-danger mb-3" style="
     border-radius: 200px!important;
     box-shadow: 0px 4px 34px 7px rgba(181,83,108,1);">
@@ -48,7 +48,7 @@
       </div>
     </div>
 
-    <div class="col-2">
+    <div class="col-md-2 d-none d-md-block" >
       <div class="card text-white bg-danger mb-3" style="
     border-radius: 200px!important;
     box-shadow: 0px 4px 34px 7px rgba(181,83,108,1);">
@@ -64,7 +64,7 @@
       </div>
     </div>
 
-    <div class="col-2">
+    <div class="col-md-2 d-none d-md-block">
       <div class="card text-white bg-danger mb-3" style="
     border-radius: 200px!important;
     box-shadow: 0px 4px 34px 7px rgba(181,83,108,1);">
@@ -80,7 +80,7 @@
       </div>
     </div>
 
-    <div class="col-2">
+    <div class="col-md-2 d-none d-md-block">
       <div class="card text-white bg-info mb-3" style="
     border-radius: 200px!important;
     box-shadow: 0px 4px 34px 7px rgba(181,83,108,1);">
@@ -102,10 +102,12 @@
 
 
   <ngb-accordion [closeOthers]="true" activeIds="static-1">
+
     <ngb-panel id="static-2" title="Bonus Predictions">
       <ng-template ngbPanelContent>
 
         <h1 class="display-4">Groups</h1>
+
         <hr />
 
         <div class="row">
@@ -450,12 +452,14 @@
 
       </ng-template>
     </ngb-panel>
+
     <ngb-panel id="static-1" title="Match Predictions">
       <ng-template ngbPanelContent>
         <div class="row p-3">
+
           <div class="col-12">
 
-            <div class="row">
+            <div class="row d-none d-md-block">
               <div class="col">
                 <div class="btn-toolbar justify-content-between mb-5" role="toolbar" aria-label="Toolbar with button groups">
                   <div class="btn-group mr-2" role="group" aria-label="First group">
@@ -484,10 +488,10 @@
             
 
             <div class="row">
-              <div *ngFor="let match of filteredMatches" class="col-4 mb-5">
+              <div *ngFor="let match of filteredMatches" class="col-md-4 mb-5 col-12">
                 <div class="card">
                   <img class="card-img-top img-fluid" [src]="match.StadiumImageUrl" style="height: 200px;">
-                  <div class="card-body">
+                  <div class="card-body" style="border-bottom: 1px solid #dfdfdf">
                     <div class="text-center" style="font-size:15px;font-weight:bold;">
                       <span>
                         {{match.MatchTypeDescription}}
@@ -701,7 +705,7 @@
               </tr>
             </thead>
             <tbody>
-              <tr *ngFor="let matchStat of selectedMatchStats; index as i" class="table-success align-middle">
+              <tr *ngFor="let matchStat of selectedMatchStats; index as i" [ngClass]="{'table-warning': thisIsMe(matchStat.UserName), 'table-success': !thisIsMe(matchStat.UserName)}" class="align-middle">
                 <th class="align-middle" scope="row">{{i+1}}</th>
                 <td class="align-middle">
                   <img [src]="matchStat.UserImageUrl" height="50" style="border-radius:50px" />
