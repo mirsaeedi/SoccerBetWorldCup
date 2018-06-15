@@ -751,7 +751,7 @@
               </tr>
             </thead>
             <tbody>
-              <tr *ngFor="let stat of selectedGroupBonusPredictionStats; index as i" class="table-success align-middle">
+              <tr *ngFor="let stat of selectedGroupBonusPredictionStats; index as i" [ngClass]="{'table-warning': thisIsMe(stat.UserName), 'table-success': !thisIsMe(stat.UserName)}" class="align-middle">
                 <th class="align-middle" scope="row">{{i+1}}</th>
                 <td class="align-middle">
                   <img [src]="stat.UserImageUrl" height="50" style="border-radius:50px" />
@@ -795,7 +795,7 @@
               </tr>
             </thead>
             <tbody>
-              <tr *ngFor="let stat of selectedGroupBonusPredictionStats; index as i" class="table-success align-middle">
+              <tr *ngFor="let stat of selectedGroupBonusPredictionStats; index as i" [ngClass]="{'table-warning': thisIsMe(stat.UserName), 'table-success': !thisIsMe(stat.UserName)}" class="align-middle">
                 <th class="align-middle" scope="row">{{i+1}}</th>
                 <td class="align-middle">
                   <img [src]="stat.UserImageUrl" height="50" style="border-radius:50px" />

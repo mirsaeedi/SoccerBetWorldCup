@@ -228,7 +228,7 @@ export class HomeComponent implements OnInit{
         this.matches = matches.sort((a, b) => a.MatchUTCDateTime.unix() - b.MatchUTCDateTime.unix());
 
         let firstGroupMatch = matches.filter(q => q.MatchType == 0)[0];
-        this.IsGroupPredicationEnabled = true;//moment(firstGroupMatch.MatchDateTime).local() > moment(Date.now());
+        this.IsGroupPredicationEnabled = moment(firstGroupMatch.MatchDateTime).local() > moment(Date.now());
 
         let firstRound16Match = matches.filter(q => q.MatchType == 1)[0];
         if (firstRound16Match != null)

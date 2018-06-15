@@ -17,7 +17,14 @@ export class SigninSuccessComponent implements OnInit {
       .subscribe(result => {
 
         this.authService.setToken(result.Token);
-        this.router.navigate(['/user-setting']);
+
+        if (this.authService.getUser().BetGroupId!=null) {
+          this.router.navigate(['/dashboard']);
+        }
+        else {
+          
+          this.router.navigate(['/user-setting']);
+        }
       });
   }
 }

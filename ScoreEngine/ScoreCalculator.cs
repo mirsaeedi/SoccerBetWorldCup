@@ -117,6 +117,10 @@ namespace SoccerBet.ScoreEngine
             if (!match.MatchHasStarted)
                 return (null,null,0);
 
+            if (match.HomeTeamScore.MatchResult is null
+                || match.AwayTeamScore.MatchResult is null)
+                return (null, null, 0);
+
             if (matchPrediction == null)
                 return (null, null, 0);
 
@@ -124,15 +128,17 @@ namespace SoccerBet.ScoreEngine
                 || matchPrediction.AwayTeamScore.MatchResult is null)
                 return (null, null, 0);
 
-            if(matchPrediction.MatchResultType!=match.MatchResultType)
-                return (null, null, 0);
-
-            if (matchPrediction.MatchWinner?.Id!=match.MatchWinner?.Id)
-                return (null, null, 0);
-
-            var matchRule = GetPredictionRule(match);
             var matchPredictionType = GetMatchPredictionType(match, matchPrediction);
             var penaltyPredictionType = GetPenaltyPredictionType(match, matchPrediction);
+
+            if (matchPrediction.MatchResultType!=match.MatchResultType)
+                return (matchPredictionType, penaltyPredictionType, 0);
+
+            if (matchPrediction.MatchWinner?.Id!=match.MatchWinner?.Id)
+                return (matchPredictionType, penaltyPredictionType, 0);
+
+            var matchRule = GetPredictionRule(match);
+
             var score = 0.0;
 
             if (matchRule.UseFormulaForComputingScore)
@@ -165,13 +171,17 @@ namespace SoccerBet.ScoreEngine
         {
             MatchPredictionType predictionType;
 
-            if (match.HomeTeamScore.MatchResult.Value == matchPrediction.HomeTeamScore.MatchResult.Value)
+            if (match.HomeTeamScore.MatchResult.Value == matchPrediction.HomeTeamScore.MatchResult.Value
+                && match.AwayTeamScore.MatchResult.Value==matchPrediction.AwayTeamScore.MatchResult.Value)
                 predictionType = MatchPredictionType.Exact;
             else if (match.GoalDifference == matchPrediction.GoalDifference)
                 predictionType= MatchPredictionType.GoalDifference;
             else if (match.MatchWinner != null && matchPrediction.MatchWinner != null
                 && match.MatchWinner.Id == matchPrediction.MatchWinner.Id)
                 predictionType= MatchPredictionType.MatchWinner;
+            else if(match.MatchResultType.Value== MatchResultType.Withdraw &&
+                match.MatchResultType==matchPrediction.MatchResultType)
+                predictionType = MatchPredictionType.MatchWinner;
             else
                 predictionType=  MatchPredictionType.Wrong;
 
