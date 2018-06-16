@@ -12,11 +12,13 @@ namespace SoccerBet
 {
     public class LiveScoreUpdaterJob
     {
+        private IHttpClientFactory _httpClientFactory;
         private SoccerBetDbContext _dbContext;
-        private string _liveUrl = "http://api.football-data.org/v1/competitions/467/fixtures";
+        private string _liveUrl = "/v1/competitions/467/fixtures";
 
-        public LiveScoreUpdaterJob(SoccerBetDbContext dbContext)
+        public LiveScoreUpdaterJob(SoccerBetDbContext dbContext, IHttpClientFactory httpClientFactory)
         {
+            _httpClientFactory = httpClientFactory;
             _dbContext = dbContext;
         }
 
@@ -29,8 +31,7 @@ namespace SoccerBet
                 .Where(q => q.DateTime.LocalDateTime < DateTime.Now)
                 .ToArrayAsync();
 
-            var httpClient = new HttpClient();
-            httpClient.DefaultRequestHeaders.Add("X-Auth-Token", "6da0bb2be99345d1ace032c5f1b2d244");
+            var httpClient =  _httpClientFactory.CreateClient("LiveScoreAPIClient");
             var httpResponseMessage = await httpClient.GetAsync(_liveUrl);
 
 

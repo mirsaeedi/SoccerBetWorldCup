@@ -4,6 +4,8 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -37,8 +39,8 @@ namespace SoccerBet.Controllers
             _signInManager = signInManager;
         }
 
-        [Route("signin/{provider}")]
-        [HttpPost]
+        [HttpPost("signin/{provider}")]
+        [AllowAnonymous]
         public IActionResult ExternalLogin(string provider)
         {
             string redirectUrl = "/signin/signin-success";
@@ -46,7 +48,7 @@ namespace SoccerBet.Controllers
             return new ChallengeResult(provider, properties);
         }
 
-        [Authorize]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         [HttpPost("account/join-group")]
         public async Task<IActionResult> JoinGroup([FromBody]JoinBetGroupCommand command)
         {
@@ -64,11 +66,10 @@ namespace SoccerBet.Controllers
             return Ok(new { Token = token });
         }
 
-        [Route("signin/gettoken")]
-        [HttpGet]
+        [HttpGet("signin/gettoken")]
         public async Task<IActionResult> GetToken()
         {
-            var user = await _userManager.GetUserAsync(User);
+            var user = await GetCurrentUser();
 
             var defaultUserBetGroup = await _dbContext.UserBetGroups
                 .FirstOrDefaultAsync(q => q.UserId == user.Id);
@@ -78,9 +79,7 @@ namespace SoccerBet.Controllers
             return Ok(new { Token= token });
         }
 
-        [Route("signin/signin-success")]
-        [HttpGet]
-        [AllowAnonymous]
+        [HttpGet("signin/signin-success")]
         public async Task<IActionResult> ExternalLoginCallback(string returnUrl = null, string remoteError = null)
         {
             var info = await _signInManager.GetExternalLoginInfoAsync();
@@ -90,6 +89,8 @@ namespace SoccerBet.Controllers
 
             if (result.Succeeded)
             {
+                var foundUser = await _userManager.FindByEmailAsync(info.Principal.FindFirst(ClaimTypes.Email)?.Value);
+                await _signInManager.SignInAsync(foundUser, isPersistent: true);
                 return RedirectToLocal("/signin-success");
             }
 
@@ -176,7 +177,9 @@ namespace SoccerBet.Controllers
 
         private async Task<User> GetCurrentUser()
         {
-            return await _userManager.GetUserAsync(User);
+            var username = User.FindFirst(ClaimTypes.Email)?.Value??
+                User.FindFirst(ClaimTypes.Name).Value;
+            return await _userManager.FindByNameAsync(username);
         }
     }
 }

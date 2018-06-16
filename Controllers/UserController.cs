@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -16,7 +18,7 @@ using SoccerBet.ViewModels.QueryResult;
 
 namespace SoccerBet.Controllers
 {
-    [Authorize]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     [Route("api")]
     public class UserController : Controller
     {
@@ -118,7 +120,8 @@ namespace SoccerBet.Controllers
 
         private async Task<User> GetCurrentUser()
         {
-            return await _userManager.GetUserAsync(User); 
+            var username = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+            return await _userManager.FindByNameAsync(username);
         }
 
         [HttpPost("join")]

@@ -1,3 +1,7 @@
+using Microsoft.ApplicationInsights.SnapshotCollector;
+using Microsoft.Extensions.Options;
+using Microsoft.ApplicationInsights.AspNetCore;
+using Microsoft.ApplicationInsights.Extensibility;
 using Hangfire;
 using Hangfire.Dashboard;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -34,23 +38,21 @@ namespace SoccerBet
 
         public void ConfigureServices(IServiceCollection services)
         {
+            // Configure SnapshotCollector from application settings
+            services.Configure<SnapshotCollectorConfiguration>(Configuration.GetSection(nameof(SnapshotCollectorConfiguration)));
+
+            // Add SnapshotCollector telemetry processor.
+            services.AddSingleton<ITelemetryProcessorFactory>(sp => new SnapshotCollectorTelemetryProcessorFactory(sp));
+
             var jwtConfig = Configuration.GetSection("jwt").Get<JwtOptionConfiguration>();
             services.Configure<JwtOptionConfiguration>(Configuration.GetSection("jwt"));
 
-            services.AddDbContext<SoccerBetDbContext>(options =>
+            services.AddDbContextPool<SoccerBetDbContext>(options =>
                 options.UseSqlServer(Configuration.GetConnectionString("SoccerBetConnection")));
 
             services.AddIdentity<User, Role>()
                 .AddEntityFrameworkStores<SoccerBetDbContext>()
                 .AddDefaultTokenProviders();
-
-            services.ConfigureApplicationCookie(options => {
-                options.LoginPath = "/signin";
-                options.LogoutPath = "/logout";
-                options.Cookie.HttpOnly = true;
-                options.Cookie.Expiration = TimeSpan.FromDays(30);
-                options.ExpireTimeSpan = TimeSpan.FromDays(30);
-            });
 
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(options =>
@@ -62,48 +64,51 @@ namespace SoccerBet
                      ClockSkew = TimeSpan.FromMinutes(5),
                      ValidateLifetime = true,
                      ValidateIssuerSigningKey = true,
-                     ValidateIssuer=true,
+                     ValidateIssuer = true,
                      ValidIssuer = jwtConfig.ValidIssuer,
-                     ValidateAudience=true,
+                     ValidateAudience = true,
                      ValidAudience = jwtConfig.ValidAudience,
                      RequireSignedTokens = true,
-                     RequireExpirationTime=true,
+                     RequireExpirationTime = true,
                      IssuerSigningKey = jwtConfig.IssuerSigningKey
                  };
-             });
-
-            services.AddAuthentication().AddGoogle(googleOptions =>
+             })
+             .AddGoogle(googleOptions =>
+             {
+                 googleOptions.ClientId = Configuration["Authentication:Google:ClientId"];
+                 googleOptions.ClientSecret = Configuration["Authentication:Google:ClientSecret"];
+                 //googleOptions.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+                 googleOptions.Events = new OAuthEvents
+                 {
+                     OnCreatingTicket = context =>
+                     {
+                         var identity = (ClaimsIdentity)context.Principal.Identity;
+                         var profileImg = context.User["image"].Value<string>("url");
+                         identity.AddClaim(new Claim("Image", profileImg));
+                         return Task.FromResult(0);
+                     }
+                 };
+             })
+             .AddFacebook(facebookOptions =>
             {
-                googleOptions.ClientId = Configuration["Authentication:Google:ClientId"];
-                googleOptions.ClientSecret = Configuration["Authentication:Google:ClientSecret"];
-                
-                googleOptions.Events = new OAuthEvents
-                {
-                    OnCreatingTicket = context =>
-                    {
-                        var identity = (ClaimsIdentity)context.Principal.Identity;
-                        var profileImg = context.User["image"].Value<string>("url");
-                        identity.AddClaim(new Claim("Image", profileImg));
-                        return Task.FromResult(0);
-                    }
-                };
-            });
-
-            services.AddAuthentication().AddFacebook(facebookOptions =>
-            {
-                //facebookOptions.CallbackPath = new Microsoft.AspNetCore.Http.PathString("/api/account/signin/facebook");
                 facebookOptions.AppId = Configuration["Authentication:Facebook:AppId"];
                 facebookOptions.AppSecret = Configuration["Authentication:Facebook:AppSecret"];
                 facebookOptions.Scope.Add("public_profile");
                 facebookOptions.Fields.Add("picture");
                 facebookOptions.Fields.Add("name");
                 facebookOptions.Fields.Add("email");
-            });
-
-            services.AddAuthentication().AddTwitter(twitterOptions =>
+            })
+            .AddTwitter(twitterOptions =>
             {
                 twitterOptions.ConsumerKey = Configuration["Authentication:Twitter:ConsumerKey"];
                 twitterOptions.ConsumerSecret = Configuration["Authentication:Twitter:ConsumerSecret"];
+            });
+
+            services.AddHttpClient("LiveScoreAPIClient", client =>
+            {
+                client.BaseAddress = new Uri("http://api.football-data.org");
+                client.DefaultRequestHeaders.Add("X-Auth-Token", "6da0bb2be99345d1ace032c5f1b2d244");
+                client.DefaultRequestHeaders.Add("Accept", "application/json");
             });
 
             services.AddMvc()
@@ -133,6 +138,9 @@ namespace SoccerBet
             }
 
             app.UseHttpsRedirection();
+            
+
+
             app.UseStaticFiles();
             app.UseSpaStaticFiles();
 
@@ -172,6 +180,20 @@ namespace SoccerBet
 
             // Allow all authenticated users to see the Dashboard (potentially dangerous).
             return httpContext.User.Identity.IsAuthenticated;
+        }
+    }
+
+    public class SnapshotCollectorTelemetryProcessorFactory : ITelemetryProcessorFactory
+    {
+        private readonly IServiceProvider _serviceProvider;
+
+        public SnapshotCollectorTelemetryProcessorFactory(IServiceProvider serviceProvider) =>
+            _serviceProvider = serviceProvider;
+
+        public ITelemetryProcessor Create(ITelemetryProcessor next)
+        {
+            var snapshotConfigurationOptions = _serviceProvider.GetService<IOptions<SnapshotCollectorConfiguration>>();
+            return new SnapshotCollectorTelemetryProcessor(next, configuration: snapshotConfigurationOptions.Value);
         }
     }
 }
