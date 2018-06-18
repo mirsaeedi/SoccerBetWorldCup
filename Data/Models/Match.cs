@@ -8,6 +8,7 @@ namespace SoccerBet.Data.Models
 {
     public class Match:Entity
     {
+        public MatchStatus MatchStatus { get; set; }
         public MatchType MatchType { get; set; }
         public TeamScore HomeTeamScore { get; set; }
         public TeamScore AwayTeamScore { get; set; }

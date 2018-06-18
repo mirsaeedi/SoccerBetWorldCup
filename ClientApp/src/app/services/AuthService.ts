@@ -5,7 +5,6 @@ import { UserToken } from "../models/UserToken";
 import { JwtHelperService } from "@auth0/angular-jwt";
 import { Observable } from "rxjs";
 import { Router } from "@angular/router";
-import { CookieService } from 'angular2-cookie/core';
 import { BetGroup } from "../models/BetGroup";
 
 @Injectable()

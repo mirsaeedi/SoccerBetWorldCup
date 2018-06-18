@@ -38,6 +38,13 @@ namespace SoccerBet
 
         public void ConfigureServices(IServiceCollection services)
         {
+            services.Configure<ApiBehaviorOptions>(options =>
+            {
+                options.SuppressConsumesConstraintForFormFileParameters = true;
+                options.SuppressInferBindingSourcesForParameters = true;
+                options.SuppressModelStateInvalidFilter = true;
+            });
+
             // Configure SnapshotCollector from application settings
             services.Configure<SnapshotCollectorConfiguration>(Configuration.GetSection(nameof(SnapshotCollectorConfiguration)));
 
@@ -77,7 +84,6 @@ namespace SoccerBet
              {
                  googleOptions.ClientId = Configuration["Authentication:Google:ClientId"];
                  googleOptions.ClientSecret = Configuration["Authentication:Google:ClientSecret"];
-                 //googleOptions.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
                  googleOptions.Events = new OAuthEvents
                  {
                      OnCreatingTicket = context =>

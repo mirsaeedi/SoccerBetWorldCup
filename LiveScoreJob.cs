@@ -2,6 +2,7 @@
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SoccerBet.Data;
+using SoccerBet.Data.Models.Constants;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,7 +15,7 @@ namespace SoccerBet
     {
         private IHttpClientFactory _httpClientFactory;
         private SoccerBetDbContext _dbContext;
-        private string _liveUrl = "/v1/competitions/467/fixtures";
+        private readonly string _liveUrl = "/v1/competitions/467/fixtures";
 
         public LiveScoreUpdaterJob(SoccerBetDbContext dbContext, IHttpClientFactory httpClientFactory)
         {
@@ -28,8 +29,12 @@ namespace SoccerBet
                 .Matches
                 .Include(m=>m.HomeTeamScore.Team)
                 .Include(m => m.AwayTeamScore.Team)
-                .Where(q => q.DateTime.LocalDateTime < DateTime.Now)
+                .Where(q => q.DateTime.LocalDateTime < DateTime.Now && q.MatchStatus!=MatchStatus.Finished)
                 .ToArrayAsync();
+
+
+            if (currentMatches.Length == 0)
+                return;
 
             var httpClient =  _httpClientFactory.CreateClient("LiveScoreAPIClient");
             var httpResponseMessage = await httpClient.GetAsync(_liveUrl);
@@ -56,6 +61,17 @@ namespace SoccerBet
                         && awayTeamName == (string)fixture.awayTeamName
                         && matchDate==date)
                     {
+                        string status = fixture.status;
+
+                        if (status == "IN_PLAY")
+                        {
+                            match.MatchStatus = MatchStatus.InPlay;
+                        }
+                        else if(status == "FINISHED")
+                        {
+                            match.MatchStatus = MatchStatus.Finished;
+                        }
+
                         match.HomeTeamScore.MatchResult = (short?)fixture.result.goalsHomeTeam;
                         match.AwayTeamScore.MatchResult = (short?)fixture.result.goalsAwayTeam;
                     }

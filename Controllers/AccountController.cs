@@ -20,7 +20,8 @@ using SoccerBet.ViewModels.Command;
 namespace SoccerBet.Controllers
 {
     
-    public class AccountController : Controller
+    [ApiController]
+    public class AccountController : ControllerBase
     {
         private readonly SoccerBetDbContext _dbContext;
         private readonly IOptions<JwtOptionConfiguration> _jwtOptionConfiguration;

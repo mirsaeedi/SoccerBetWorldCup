@@ -3,15 +3,17 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SoccerBet.Data;
 
 namespace SoccerBet.Migrations
 {
     [DbContext(typeof(SoccerBetDbContext))]
-    partial class SoccerBetDbContextModelSnapshot : ModelSnapshot
+    [Migration("20180618123718_add-match-status")]
+    partial class addmatchstatus
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

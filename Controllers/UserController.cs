@@ -20,7 +20,8 @@ namespace SoccerBet.Controllers
 {
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     [Route("api")]
-    public class UserController : Controller
+    [ApiController]
+    public class UserController : ControllerBase
     {
         private readonly UserManager<User> _userManager;
         private readonly SoccerBetDbContext _dbContext;
