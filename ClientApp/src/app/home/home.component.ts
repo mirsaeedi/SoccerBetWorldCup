@@ -26,6 +26,7 @@ export class HomeComponent implements OnInit{
 
   selectedGroupBonusPredictionStats: GroupBonusPredictionStat[];
   filteredMatches: Match[];
+  todaysMatches: Match[];
   userStatus= new UserStatus();
   selectedMatchStats: MatchStat[];
   teams: Team[]
@@ -226,6 +227,7 @@ export class HomeComponent implements OnInit{
         }
 
         this.matches = matches.sort((a, b) => a.MatchUTCDateTime.unix() - b.MatchUTCDateTime.unix());
+        this.todaysMatches = matches.filter(q => moment(q.MatchDateTime).local().format('YYYY/MM/DD') == moment().format('YYYY/MM/DD'));
 
         let firstGroupMatch = matches.filter(q => q.MatchType == 0)[0];
         this.IsGroupPredicationEnabled = moment(firstGroupMatch.MatchDateTime).local() > moment(Date.now());
@@ -236,7 +238,7 @@ export class HomeComponent implements OnInit{
         else
           this.IsTopNotchPredicationEnabled = true;
 
-        this.filteredMatches = matches;
+       this.filterMatchesBasedOnDate(0);
 
       });
   }
@@ -251,6 +253,13 @@ export class HomeComponent implements OnInit{
     }
 
   }
+
+  filterMatchesBasedOnDate(addDays:number): void {
+
+    this.filteredMatches = this.matches.filter(q => moment(q.MatchDateTime).local().format('YYYY/MM/DD') == moment().add(addDays, 'days').format('YYYY/MM/DD'));
+  }
+
+  
 
   filterMatchesBasedOnPredictionType(predictionType: number|null): void {
 

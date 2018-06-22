@@ -139,14 +139,17 @@ namespace SoccerBet
             }
             else
             {
+                app.UseHangfireServer();
+                app.UseHangfireDashboard("/hangfire", new DashboardOptions
+                {
+                    Authorization = new[] { new MyAuthorizationFilter() }
+                });
+                RecurringJob.AddOrUpdate<LiveScoreUpdaterJob>((job) => job.Run(), Cron.Minutely);
                 app.UseExceptionHandler("/Error");
                 app.UseHsts();
             }
 
             app.UseHttpsRedirection();
-            
-
-
             app.UseStaticFiles();
             app.UseSpaStaticFiles();
 
@@ -159,12 +162,6 @@ namespace SoccerBet
                     template: "{controller}/{action=Index}/{id?}");
             });
 
-            app.UseHangfireServer();
-            app.UseHangfireDashboard("/hangfire", new DashboardOptions
-            {
-                Authorization = new[] { new MyAuthorizationFilter() }
-            });
-
             app.UseSpa(spa =>
             {
                 spa.Options.SourcePath = "ClientApp";
@@ -175,7 +172,7 @@ namespace SoccerBet
                 }
             });
 
-            RecurringJob.AddOrUpdate<LiveScoreUpdaterJob>((job) => job.Run(), Cron.Minutely);
+            
         }
     }
     public class MyAuthorizationFilter : IDashboardAuthorizationFilter

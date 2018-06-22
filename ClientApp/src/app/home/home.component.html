@@ -71,7 +71,7 @@
         <div class="card-header text-center">
           <div style="font-size:20px; color:yellow">
             <i class="fas fa-lightbulb"></i>
-            <p style="font-size:20px;margin:0">Match Winner</p>
+            <p style="font-size:20px;margin:0">Winner</p>
           </div>
         </div>
         <div class="card-body text-center">
@@ -456,8 +456,20 @@
     <ngb-panel id="static-1" title="Match Predictions">
       <ng-template ngbPanelContent>
         <div class="row p-3">
-
           <div class="col-12">
+            <div class="row">
+              <div class="col-md-12 col-12">
+                <div class="btn-toolbar justify-content-between mb-1" role="toolbar">
+                  <div class="btn-group" role="group">
+                    <button type="button" (click)="filterMatchesBasedOnDate(0)" class="btn btn-success">Today's Matches</button>
+                    <button type="button" (click)="filterMatchesBasedOnDate(1)" class="btn btn-success">Tomorrow's Matches</button>
+                    <button type="button" (click)="filterMatchesBasedOnPredictionType(0)" class="btn btn-success  d-none d-md-block">Predicted Matches</button>
+                    <button type="button" (click)="filterMatchesBasedOnPredictionType(1)" class="btn btn-success  d-none d-md-block">Non-predicted Matches</button>
+                    <button type="button" (click)="filterMatchesBasedOnPredictionType(null)" class="btn btn-success">All Matches</button>
+                  </div>
+                </div>
+              </div>
+            </div>
 
             <div class="row d-none d-md-block">
               <div class="col">
@@ -465,7 +477,7 @@
                   <div class="btn-group mr-2" role="group" aria-label="First group">
                     <button type="button" (click)="filterMatchesBasedOnType(0,'A')" class="btn btn-secondary">A</button>
                     <button type="button" (click)="filterMatchesBasedOnType(0,'B')" class="btn btn-secondary">B</button>
-                    <button type="button" (click)="filterMatchesBasedOnType(0,'C')"  class="btn btn-secondary">C</button>
+                    <button type="button" (click)="filterMatchesBasedOnType(0,'C')" class="btn btn-secondary">C</button>
                     <button type="button" (click)="filterMatchesBasedOnType(0,'D')" class="btn btn-secondary">D</button>
                     <button type="button" (click)="filterMatchesBasedOnType(0,'E')" class="btn btn-secondary">E</button>
                     <button type="button" (click)="filterMatchesBasedOnType(0,'F')" class="btn btn-secondary">F</button>
@@ -477,15 +489,9 @@
                     <button type="button" (click)="filterMatchesBasedOnType(4,null)" class="btn btn-secondary">Play-off</button>
                     <button type="button" (click)="filterMatchesBasedOnType(5,null)" class="btn btn-secondary">Final</button>
                   </div>
-                  <div class="btn-group mr-2" role="group" aria-label="Second group">
-                    <button type="button" (click)="filterMatchesBasedOnPredictionType(0)" class="btn btn-success">Predicted</button>
-                    <button type="button" (click)="filterMatchesBasedOnPredictionType(1)" class="btn btn-success">Non-predicted</button>
-                    <button type="button" (click)="filterMatchesBasedOnPredictionType(null)" class="btn btn-success">All</button>
-                  </div>
                 </div>
               </div>
-            </div> 
-            
+            </div>
 
             <div class="row">
               <div *ngFor="let match of filteredMatches" class="col-md-4 mb-5 col-12">
@@ -607,7 +613,7 @@
                       <div class="col">
                         <button type="button" class="btn btn-info btn-block" [ngClass]="{disabled: !match.MatchHasStarted}" style="max-width:100%" (click)="openMatchStatsDialog(match)">
                           <i class="fas fa-book"></i>
-                          Match Stats
+                          All Predictions
                         </button>
                       </div>
                     </div>
@@ -619,6 +625,7 @@
         </div>
       </ng-template>
     </ngb-panel>
+
   </ngb-accordion>
 
 </div>
