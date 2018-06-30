@@ -314,8 +314,9 @@ export class HomeComponent implements OnInit{
       ? match.HomeTeamPredictionResult: 0;
 
     if (match.MatchType != 0 && match.AwayTeamPredictionResult == match.HomeTeamPredictionResult) {
-      this.matchPrediction.PenaltyWinnerTeamId =
-        (match.AwayTeamPredictionPenaltyResult - match.HomeTeamPredictionPenaltyResult > 0)
+      this.matchPrediction.PenaltyWinnerTeamId = this.matchPrediction.PenaltyWinnerTeamId != null
+        ? this.matchPrediction.PenaltyWinnerTeamId
+        :(match.AwayTeamPredictionPenaltyResult - match.HomeTeamPredictionPenaltyResult > 0)
         ? match.AwayTeamId : match.HomeTeamId;
     }
     else {
@@ -343,7 +344,8 @@ export class HomeComponent implements OnInit{
 
   showBonusPredictionStatsForTopNotchs(bonusPredictionType: number): void {
 
-    this.http.get<GroupBonusPredictionStat[]>(`/api/bonus-predictions/top-notchs/${bonusPredictionType}`, { params: { BetGroupId: this.currentUser.BetGroupId } })
+    this.http.get<GroupBonusPredictionStat[]>(`/api/bonus-predictions/top-notchs/${bonusPredictionType}`,
+      { params: { BetGroupId: this.currentUser.BetGroupId, BonusPredictionType: bonusPredictionType.toString() } })
       .subscribe(data => {
         this.selectedGroupBonusPredictionStats = data;
         this.open(this.topNotchBonusPredictionMatchStatsModal, { size: 'lg' });
@@ -351,6 +353,8 @@ export class HomeComponent implements OnInit{
   }
 
   saveMatchPrediction(): void {
+
+
 
     var prediction = {
       MatchId: this.selectedMatch.Id,

@@ -378,11 +378,9 @@ namespace SoccerBet.Controllers
 
                 var runnerup = groupPredictions
                     .Single(q => q.BonusPredictionType == BonusPredictionType.SecondTeamInGroup).TeamId;
-
-                var groupMatches = await GetGroupMatches(group.Id);
-
+                
                 var score= scoreCalculator
-                    .CalculateBonusScoreForGroup(winner,runnerup, groupMatches);
+                    .CalculateBonusScoreForGroup(winner,runnerup, group);
 
                 var record = new BonusPredictionsScoreQueryResult()
                 {
@@ -457,15 +455,12 @@ namespace SoccerBet.Controllers
             }
             else
             {
-                var firstMatch = (await _dbContext
+                var firstMatchDateTime = (await _dbContext
                                     .Matches
                                     .Where(q => q.MatchType == MatchType.RoundOf16)
-                                    .OrderBy(q => q.DateTime)
-                                    .FirstOrDefaultAsync());
+                                    .MinAsync(q => q.DateTime));
 
-
-
-                if (firstMatch!=null && DateTime.Now > firstMatch.DateTime.LocalDateTime)
+                if (firstMatchDateTime!=null && DateTime.Now > firstMatchDateTime.ToLocalTime())
                     return Unauthorized();
             }
 
@@ -578,8 +573,10 @@ namespace SoccerBet.Controllers
                 var userMatchPredictionScore = scoreCalculator
                     .CalculateTotalMatchPredictionScoreForUser(user, matches, userMatchPredictions);
 
+                var worldCupGroups = await _dbContext.WorldCupGroups.ToArrayAsync();
+
                 var userBonusPredictionScore = scoreCalculator
-                    .CalculateTotalBonusPredictionScoreForUser(user, matches, userBonusPredictions);
+                    .CalculateTotalBonusPredictionScoreForUser(user, matches,worldCupGroups, userBonusPredictions);
 
                 result.Add(new UserRankQueryResult()
                 {
@@ -636,8 +633,10 @@ namespace SoccerBet.Controllers
                 var userMatchPredictionScore = scoreCalculator
                     .CalculateTotalMatchPredictionScoreForUser(user, matches, userMatchPredictions);
 
+                var worldCupGroups = await _dbContext.WorldCupGroups.ToArrayAsync();
+
                 var userBonusPredictionScore = scoreCalculator
-                    .CalculateTotalBonusPredictionScoreForUser(user, matches, userBonusPredictions);
+                    .CalculateTotalBonusPredictionScoreForUser(user, matches,worldCupGroups, userBonusPredictions);
 
                 result.Add(new UserRankQueryResult()
                 {
@@ -691,7 +690,6 @@ namespace SoccerBet.Controllers
             var userBetGroup = await GetCurrentUserBetGroup(query.BetGroupId);
             var scoreCalculator = await GetScoreCalculator(query.BetGroupId);
             var group = await GetGroupByName(query.GroupName);
-            var groupMatches = await GetGroupMatches(group.Id);
             var allBonusPredictionsForGroup = await GetBonusPredictionsForGroup(group.Id, query.BetGroupId);
 
             var result = new List<GroupBonusPredictionStatQueryResult>();
@@ -706,7 +704,7 @@ namespace SoccerBet.Controllers
 
                 var score = scoreCalculator
                     .CalculateBonusScoreForGroup
-                    (winnerTeamPrediction.TeamId, runnerupTeamPrediction.TeamId, groupMatches);
+                    (winnerTeamPrediction.TeamId, runnerupTeamPrediction.TeamId, group);
 
                 var record = new GroupBonusPredictionStatQueryResult()
                 {
@@ -751,13 +749,12 @@ namespace SoccerBet.Controllers
         [HttpGet("bonus-predictions/top-notchs/{predictionType}")]
         public async Task<IActionResult> GetBonusPredictionForTopNotch(GetBonusPredictionForTopNotchQuery query)
         {
-            var firstMatch = await _dbContext
+            var firstMatchDateTime = await _dbContext
                                     .Matches
                                     .Where(q => q.MatchType == MatchType.RoundOf16)
-                                    .OrderBy(q => q.DateTime)
-                                    .FirstOrDefaultAsync();
+                                    .MinAsync(q => q.DateTime);
 
-            if (firstMatch == null || (DateTime.Now < firstMatch.DateTime.LocalDateTime))
+            if (firstMatchDateTime == null || (DateTime.Now < firstMatchDateTime.LocalDateTime))
                 return Unauthorized();
 
             var userBetGroup = await GetCurrentUserBetGroup(query.BetGroupId);
@@ -777,9 +774,9 @@ namespace SoccerBet.Controllers
 
                 var record = new GroupBonusPredictionStatQueryResult()
                 {
-                    UserName = bonusPrediction.UserBetGroup.User.UserName,
+                    UserName = bonusPrediction.UserBetGroup.User.Name,
                     UserImageUrl = bonusPrediction.UserBetGroup.User.ImageUrl,
-                    FirstTeamName = bonusPrediction.Team.Name,
+                    FirstTeamName = bonusPrediction.Team?.Name,
                     Score=score
                 };
 
@@ -803,10 +800,10 @@ namespace SoccerBet.Controllers
         private async Task<BonusPrediction[]> GetBonusPredictionsFor(BonusPredictionType bonusPredictionType, long betGroupId)
         {
             return await _dbContext.BonusPredictions
-               .Where(q => q.BonusPredictionType == bonusPredictionType
-               && q.UserBetGroup.BetGroupId == betGroupId)
+               .Where(q => q.BonusPredictionType == bonusPredictionType && q.UserBetGroup.BetGroupId == betGroupId)
                .Include(m=>m.UserBetGroup.User)
-               .Include(m => m.Team).ToArrayAsync();
+               .Include(m => m.Team)
+               .ToArrayAsync();
         }
     } 
 }
