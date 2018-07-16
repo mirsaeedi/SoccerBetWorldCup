@@ -14,6 +14,7 @@
     <Platforms>AnyCPU;x64;x86</Platforms>
     <ApplicationInsightsResourceId>/subscriptions/e47ec37e-8d49-4aef-a724-e890b8e575f5/resourcegroups/SoccerBetResourceGroup/providers/microsoft.insights/components/SoccerBetApplicationInsight</ApplicationInsightsResourceId>
     <ApplicationInsightsAnnotationResourceId>/subscriptions/e47ec37e-8d49-4aef-a724-e890b8e575f5/resourcegroups/SoccerBetResourceGroup/providers/microsoft.insights/components/SoccerBetApplicationInsight</ApplicationInsightsAnnotationResourceId>
+    <DockerComposeProjectPath>docker-compose.dcproj</DockerComposeProjectPath>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">

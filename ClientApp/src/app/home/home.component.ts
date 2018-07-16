@@ -371,6 +371,9 @@ export class HomeComponent implements OnInit{
         this.selectedMatch.AwayTeamPredictionResult = this.matchPrediction.AwayTeamPredictionResult;
         this.selectedMatch.HomeTeamPredictionResult = this.matchPrediction.HomeTeamPredictionResult;
         this.toasterService.pop('success', 'Successfully Saved', `Sit relax and hope for a bit of luck 🤑🤑🤑`);
+      },
+      error => {
+        this.toasterService.pop('error', 'I`m sorry!', `Please try again.`);
       });
 
     this.openedModal.close();

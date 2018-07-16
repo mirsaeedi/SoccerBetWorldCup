@@ -68,7 +68,7 @@ namespace SoccerBet.ScoreEngine
             var playoffMatch = matches.SingleOrDefault(q => q.MatchType == MatchType.ThirdPlacePlayOff);
             sum += CalculateBonusScoreForTopNotch(
                 bonusPredictions.Single(q => q.BonusPredictionType == BonusPredictionType.ThirdTeamInWorldCup).TeamId,
-                finalMatch, BonusPredictionType.ThirdTeamInWorldCup);
+                playoffMatch, BonusPredictionType.ThirdTeamInWorldCup);
 
 
             return sum;

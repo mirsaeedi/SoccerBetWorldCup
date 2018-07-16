@@ -253,6 +253,12 @@ namespace SoccerBet.Controllers
                 };
 
                 if (command.AwayMatchResult == command.HomeMatchResult
+                    && !command.PenaltyWinnerTeamId.HasValue)
+                {
+                    return BadRequest();
+                }
+
+                if (command.AwayMatchResult == command.HomeMatchResult
                     && command.PenaltyWinnerTeamId.HasValue)
                 {
                     prediction.HomeTeamScore.PenaltyResult = (short)(
@@ -268,8 +274,15 @@ namespace SoccerBet.Controllers
             {
                 prediction.HomeTeamScore.MatchResult = command.HomeMatchResult;
                 prediction.AwayTeamScore.MatchResult = command.AwayMatchResult;
+
                 prediction.HomeTeamScore.PenaltyResult = null;
                 prediction.AwayTeamScore.PenaltyResult = null;
+
+                if (command.AwayMatchResult == command.HomeMatchResult
+                    && !command.PenaltyWinnerTeamId.HasValue)
+                {
+                    return BadRequest();
+                }
 
                 if (command.AwayMatchResult == command.HomeMatchResult
                     && command.PenaltyWinnerTeamId.HasValue)
@@ -394,6 +407,8 @@ namespace SoccerBet.Controllers
 
             var match = await _dbContext
                 .Matches
+                .Include(q=>q.AwayTeamScore.Team)
+                .Include(q => q.HomeTeamScore.Team)
                 .SingleOrDefaultAsync(q => q.MatchType == MatchType.Final);
 
             var stat = new BonusPredictionsScoreQueryResult()
@@ -421,6 +436,8 @@ namespace SoccerBet.Controllers
 
             match = await _dbContext
                 .Matches
+                .Include(q => q.AwayTeamScore.Team)
+                .Include(q => q.HomeTeamScore.Team)
                 .SingleOrDefaultAsync(q => q.MatchType == MatchType.ThirdPlacePlayOff);
 
             stat = new BonusPredictionsScoreQueryResult()
@@ -763,6 +780,8 @@ namespace SoccerBet.Controllers
             MatchType matchType = GetMatchTypeBasedOfPredictionType(query.BonusPredictionType);
 
             var match = await _dbContext.Matches
+                .Include(q => q.AwayTeamScore.Team)
+                .Include(q => q.HomeTeamScore.Team)
                 .SingleOrDefaultAsync(q => q.MatchType == matchType);
 
             var result = new List<GroupBonusPredictionStatQueryResult>();

@@ -155,7 +155,7 @@ namespace SoccerBet
             app.UseHangfireServer();
 
             RecurringJob.AddOrUpdate<LiveScoreUpdaterJob>((job) => job.Run(), Cron.Minutely);
-            RecurringJob.AddOrUpdate<WinnerRunnerupUpdaterJob>((job) => job.Run(), Cron.Hourly);
+            //RecurringJob.AddOrUpdate<WinnerRunnerupUpdaterJob>((job) => job.Run(), Cron.Hourly);
 
             app.UseMvc(routes =>
             {

@@ -72,8 +72,22 @@ namespace SoccerBet
                             match.MatchStatus = MatchStatus.Finished;
                         }
 
+                        match.HomeTeamScore.PenaltyResult = (short?)fixture.result.penaltyShootout?.goalsHomeTeam;
+                        match.AwayTeamScore.PenaltyResult = (short?)fixture.result.penaltyShootout?.goalsAwayTeam;
+
                         match.HomeTeamScore.MatchResult = (short?)fixture.result.goalsHomeTeam;
                         match.AwayTeamScore.MatchResult = (short?)fixture.result.goalsAwayTeam;
+
+                        try
+                        {
+                            match.HomeTeamScore.MatchResult = (short?)fixture.result.extraTime.goalsHomeTeam;
+                            match.AwayTeamScore.MatchResult = (short?)fixture.result.extraTime.goalsAwayTeam;
+                        }
+                        catch (Exception)
+                        {
+                        }
+                        
+
                     }
                 }
             }
